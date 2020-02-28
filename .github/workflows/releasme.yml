@@ -1,4 +1,4 @@
-name: Release Drafter
+name: Release Drfat On Master
 
 on:
   push:

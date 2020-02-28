@@ -3,15 +3,14 @@
 .SECONDEXPANSION:
 
 
-.phony: rbac-minimizer
-
-
 get-deps: ##@Install Dependencies Linux
 	go mod vendor
 
 
 VERSION ?= 1.0.0
 
+
+.phony: rbac-minimizer
 rbac-minimizer: ##@KubeDialer Build rbac-minimizer
 	export CGO_ENABLED=0 && go build -o rbac-minimizer -tags staticbinary -i -v -ldflags='-s -w' .
 
