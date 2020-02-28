@@ -29,3 +29,4 @@ template: |
   ```shell script
   rbac-minimizer  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
   ```
+
