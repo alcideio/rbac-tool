@@ -1,4 +1,4 @@
-name-template: 'v$NEXT_PATCH_VERSION 🌈'
+name-template: 'v$NEXT_PATCH_VERSION 🚀'
 tag-template: 'v$NEXT_PATCH_VERSION'
 categories:
   - title: '🚀 Features'
@@ -16,17 +16,16 @@ change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 template: |
   ## Changes
 
-  $CHANGES
-
-  ### rbac-minimize
+  $CHANGES 
 
   Generate Role or ClusterRole resource while reducing the use of wildcards.
 
   rbac-generator read from the Kubernetes discovery API the available API Groups and resources,
   and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
 
-  Example:
+  Example - 
   ```shell script
   rbac-minimizer  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
   ```
+
 
