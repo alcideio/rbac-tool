@@ -41,10 +41,10 @@ and based on the command line options, generate an explicit Role/ClusterRole tha
 Examples:
 
 # Generate a Role with read-only (get,list) excluding secrets (core group) and ingresses (extensions group) 
-rbac-minimizer gen --generated-type Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
+rbac-minimizer gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
 
 # Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
-rbac-minimizer gen --generated-type ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
+rbac-minimizer gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 
 
 `,
@@ -76,7 +76,7 @@ rbac-minimizer gen --generated-type ClusterRole --deny-resources=secrets., --all
 						APIVersion: "rbac.authorization.k8s.io/v1",
 					},
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "custom-cluster-role",
+						Name:      "custom-role",
 						Namespace: "mynamespace",
 					},
 					Rules: computedPolicyRules,

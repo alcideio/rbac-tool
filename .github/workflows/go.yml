@@ -25,7 +25,7 @@ jobs:
         fi
         
     - name: Build
-      run: go build -v .
+      run: go build -o rbac-minimizer -tags staticbinary -i -v -ldflags='-s -w' .
       
     - name: Upload artifact
       uses: actions/upload-artifact@v1.0.0
