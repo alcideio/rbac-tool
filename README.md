@@ -20,7 +20,7 @@ If you want to define a role within a namespace, use a Role; if you want to defi
 
 **rbac-minimize** simplifies the creation process of RBAC policies and avoiding those wildcards `*` and it adapts to specific Kubernets API server
 
-# Say Hello to `rbac-minimize`
+# Why `rbac-minimize`
 
 Generate Role or ClusterRole resource while reducing the use of wildcards.
 
@@ -90,7 +90,7 @@ rbac-minimize gen --generated-type Role --deny-resources=secrets.,ingresses.exte
 
 
 - Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
-```shell script
+```bash
 rbac-minimize gen --generated-type ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 ```
 
