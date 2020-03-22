@@ -1,4 +1,4 @@
-![Go](https://github.com/gadinaor/rbac-minimizer/workflows/Go/badge.svg)
+![Go](https://github.com/alcideio/rbac-minimize/workflows/Go/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # Kubernetes RBAC 
@@ -18,13 +18,13 @@ ClusterRoles have several uses. You can use a ClusterRole to:
 
 If you want to define a role within a namespace, use a Role; if you want to define a role cluster-wide, use a ClusterRole.
 
-**rbac-minimizer** simplifies the creation process of RBAC policies and avoiding those wildcards `*` and it adapts to specific Kubernets API server
+**rbac-minimize** simplifies the creation process of RBAC policies and avoiding those wildcards `*` and it adapts to specific Kubernets API server
 
-# Say Hello to `rbac-minimizer`
+# Say Hello to `rbac-minimize`
 
 Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-`rbac-minimizer` reads from the Kubernetes discovery API the available API Groups and resources, 
+`rbac-minimize` reads from the Kubernetes discovery API the available API Groups and resources, 
 and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards.
 
 One simple example is to create a Role/ClusterRole that can read everything except `secrets` 
@@ -32,7 +32,7 @@ One simple example is to create a Role/ClusterRole that can read everything exce
 ####  Running
 
 ```bash
-rbac-minimizer  gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
+rbac-minimize  gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
 ```
 
 #### Would yield:
@@ -85,13 +85,13 @@ rules:
 
 - Generate a Role with read-only (get,list) excluding secrets (core group) and ingresses (extensions group) 
 ```shell script
-rbac-minimizer gen --generated-type Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
+rbac-minimize gen --generated-type Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
 ```
 
 
 - Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 ```shell script
-rbac-minimizer gen --generated-type ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
+rbac-minimize gen --generated-type ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 ```
 
 
@@ -100,19 +100,19 @@ rbac-minimizer gen --generated-type ClusterRole --deny-resources=secrets., --all
 ```bash
 Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-rbac-minimizer read from the Kubernetes discovery API the available API Groups and resources, 
+rbac-minimize read from the Kubernetes discovery API the available API Groups and resources, 
 and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
 
 Examples:
 
 # Generate a Role with read-only (get,list) excluding secrets (core group) and ingresses (extensions group) 
-rbac-minimizer gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
+rbac-minimize gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
 
 # Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
-rbac-minimizer gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
+rbac-minimize gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 
 Usage:
-  rbac-minimizer generate [flags]
+  rbac-minimize generate [flags]
 
 Aliases:
   generate, gen

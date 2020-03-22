@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gadinaor/rbac-cluster-role/cmd"
+	"github.com/alcideio/rbac-minimize/cmd"
 	"github.com/spf13/cobra"
 )
 
 func RbacGenCmd() *cobra.Command {
 	var RootCmd = &cobra.Command{
-		Use:   "rbac-minimizer",
-		Short: "rbac-minimizer",
-		Long:  `rbac-minimizer`,
+		Use:   "rbac-minimize",
+		Short: "rbac-minimize",
+		Long:  `rbac-minimize`,
 	}
 
 	var genBashCompletionCmd = &cobra.Command{

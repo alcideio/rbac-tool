@@ -23,13 +23,13 @@ jobs:
         go get -v -t -d ./...
 
     - name: Build
-      run: make rbac-minimizer
+      run: make rbac-minimize
       
 #    - name: Upload artifact
 #      uses: actions/upload-artifact@v1.0.0
 #      with:
 #        # Artifact name
-#        name: rbac-minimizer
+#        name: rbac-minimize
 #        # Directory containing files to upload
 #        path: ./
      

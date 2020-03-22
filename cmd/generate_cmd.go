@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/gadinaor/rbac-cluster-role/kube"
+	"github.com/alcideio/rbac-minimize/kube"
 )
 
 func NewCommandGenerateClusterRole() *cobra.Command {
@@ -35,16 +35,16 @@ func NewCommandGenerateClusterRole() *cobra.Command {
 		Long: `
 Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-rbac-minimizer read from the Kubernetes discovery API the available API Groups and resources, 
+rbac-minimize read from the Kubernetes discovery API the available API Groups and resources, 
 and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
 
 Examples:
 
 # Generate a Role with read-only (get,list) excluding secrets (core group) and ingresses (extensions group) 
-rbac-minimizer gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
+rbac-minimize gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
 
 # Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
-rbac-minimizer gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
+rbac-minimize gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 
 
 `,

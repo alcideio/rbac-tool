@@ -16,7 +16,7 @@ package cmd
 //	"k8s.io/apimachinery/pkg/util/errors"
 //	"k8s.io/apimachinery/pkg/util/sets"
 //
-//	"github.com/gadinaor/rbac-cluster-role/kube"
+//	"github.com/alcideio/rbac-minimize/kube"
 //)
 //
 //func NewCommandExpandPolicyRules() *cobra.Command {
