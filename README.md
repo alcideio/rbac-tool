@@ -1,4 +1,4 @@
-![Go](https://github.com/alcideio/rbac-minimize/workflows/Go/badge.svg)
+![Go Build](https://github.com/alcideio/rbac-minimize/workflows/Release%20Drafter/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # Kubernetes RBAC 
