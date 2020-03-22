@@ -51,7 +51,7 @@ rbac-minimize gen --generated-type=ClusterRole --deny-resources=secrets., --allo
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
 
-			computedPolicyRules, err := clusterroleGenerate(clusterContext, sets.NewString(denyResources...), sets.NewString(allowedGroups...), sets.NewString(allowedVerb...))
+			computedPolicyRules, err := generateRules(clusterContext, sets.NewString(denyResources...), sets.NewString(allowedGroups...), sets.NewString(allowedVerb...))
 			if err != nil {
 				return err
 			}
@@ -102,13 +102,13 @@ rbac-minimize gen --generated-type=ClusterRole --deny-resources=secrets., --allo
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
 	//flags.StringSliceVarP(&expandGroups, "expand-groups", "g", []string{""},  "Comma separated list of API groups we would like to list all resource kinds rather than using wild cards '*'")
 	flags.StringSliceVar(&allowedGroups, "allowed-groups", []string{"*"}, "Comma separated list of API groups we would like to allow '*'")
-	flags.StringSliceVar(&allowedVerb, "allowed-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*")
-	flags.StringSliceVar(&denyResources, "deny-resources", []string{""}, "Comma separated list of resource.group")
+	flags.StringSliceVar(&allowedVerb, "allowed-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
+	flags.StringSliceVar(&denyResources, "deny-resources", []string{""}, "Comma separated list of resource.group - for example secret. to deny secret (core group) access")
 
 	return cmd
 }
 
-func clusterroleGenerate(clusterContext string, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+func generateRules(clusterContext string, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
 	errs := []error{}
 	kubeClient, err := kube.NewClient(clusterContext)
 	if err != nil {
@@ -117,11 +117,11 @@ func clusterroleGenerate(clusterContext string, denyResources sets.String, inclu
 
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
 
-	processedGroups := sets.NewString()
+	//processedGroups := sets.NewString()
 
 	for _, apiGroup := range kubeClient.ServerPreferredResources {
 
-		// rbac rules only look at API group names, not name & version
+		// rbac rules only look at API group names, not name + version
 		gv, err := schema.ParseGroupVersion(apiGroup.GroupVersion)
 		if err != nil {
 			errs = append(errs, err)
@@ -134,16 +134,16 @@ func clusterroleGenerate(clusterContext string, denyResources sets.String, inclu
 		}
 
 		//Skip API Group versions (RBAC ignore API version)
-		if processedGroups.Has(gv.Group) {
-			continue
-		}
+		//if processedGroups.Has(gv.Group) {
+		//	continue
+		//}
 
 		//Skip API Group entirely if *.APIGroup was specified
 		if denyResources.Has(fmt.Sprintf("*.%v", strings.ToLower(gv.Group))) {
 			continue
 		}
 
-		processedGroups.Insert(gv.Group)
+		//processedGroups.Insert(gv.Group)
 
 		resourceList := make([]string, 0)
 		uniqueVerbs := sets.NewString()
@@ -174,9 +174,9 @@ func clusterroleGenerate(clusterContext string, denyResources sets.String, inclu
 			continue
 		}
 
-		if len(apiGroup.APIResources) == len(resourceList) {
-			resourceList = []string{"*"}
-		}
+		//if len(apiGroup.APIResources) == len(resourceList) {
+		//	resourceList = []string{"*"}
+		//}
 
 		newPolicyRule = &rbacv1.PolicyRule{
 			APIGroups: []string{gv.Group},
