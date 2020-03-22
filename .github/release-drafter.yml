@@ -1,31 +1,33 @@
-name-template: 'v$NEXT_PATCH_VERSION 🚀'
-tag-template: 'v$NEXT_PATCH_VERSION'
 categories:
-  - title: '🚀 Features'
+  -
     labels:
-      - 'feature'
-      - 'enhancement'
-  - title: '🐛 Bug Fixes'
+      - feature
+      - enhancement
+    title: "🚀 Features"
+  -
     labels:
-      - 'fix'
-      - 'bugfix'
-      - 'bug'
-  - title: 'Maintenance'
-    label: 'chore'
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+      - fix
+      - bugfix
+      - bug
+    title: "🐛 Bug Fixes"
+  -
+    label: chore
+    title: Maintenance
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+name-template: "v$NEXT_PATCH_VERSION 🚀"
+tag-template: v$NEXT_PATCH_VERSION
 template: |
-  ## Changes
+    ## Changes
 
-  $CHANGES 
+    $CHANGES
 
-  Generate Role or ClusterRole resource while reducing the use of wildcards.
+    ## rbac-minimizer
+    Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-  `rbac-minimizer` read from the Kubernetes discovery API the available API Groups and resources,
-  and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
+    `rbac-minimizer` read from the Kubernetes discovery API the available API Groups and resources,
+    and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
 
-  Example - 
-  ```shell script
-  rbac-minimizer  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
-  ```
-
-
+    Example -
+    ```shell script
+    rbac-minimizer  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
+    ```
