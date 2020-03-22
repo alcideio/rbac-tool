@@ -1,19 +1,41 @@
-![Go](https://github.com/gadinaor/rbac-minimize/workflows/Go/badge.svg)
+![Go](https://github.com/gadinaor/rbac-minimizer/workflows/Go/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-# rbac-minimize
+# Kubernetes RBAC 
+
+Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
+RBAC authorization uses the `rbac.authorization.k8s.io` API group to drive authorization decisions, allowing you to dynamically configure policies through the Kubernetes API.
+
+Permissions are purely **additive** (there are **no “deny”** rules).
+
+A Role always sets permissions within a particular namespace ; when you create a Role, you have to specify the namespace it belongs in.
+ClusterRole, by contrast, is a non-namespaced resource.
+ClusterRoles have several uses. You can use a ClusterRole to:
+
+- define permissions on namespaced resources and be granted within individual namespace(s)
+- define permissions on namespaced resources and be granted across all namespaces
+- define permissions on cluster-scoped resources
+
+If you want to define a role within a namespace, use a Role; if you want to define a role cluster-wide, use a ClusterRole.
+
+**rbac-minimizer** simplifies the creation process of RBAC policies and avoiding those wildcards `*` and it adapts to specific Kubernets API server
+
+# Say Hello to `rbac-minimizer`
 
 Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-rbac-generator read from the Kubernetes discovery API the available API Groups and resources, 
-and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
+`rbac-minimizer` reads from the Kubernetes discovery API the available API Groups and resources, 
+and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards.
 
-Running
-```shell script
+One simple example is to create a Role/ClusterRole that can read everything except `secrets` 
+
+####  Running
+
+```bash
 rbac-minimizer  gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
 ```
 
-Would yield:
+#### Would yield:
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -57,10 +79,9 @@ rules:
   verbs:
   - get
   - list
-
 ```
 
-###Examples:
+## Examples:
 
 - Generate a Role with read-only (get,list) excluding secrets (core group) and ingresses (extensions group) 
 ```shell script
@@ -76,9 +97,22 @@ rbac-minimizer gen --generated-type ClusterRole --deny-resources=secrets., --all
 
 ## Command Line Reference
 
-```shell script
+```bash
+Generate Role or ClusterRole resource while reducing the use of wildcards.
+
+rbac-minimizer read from the Kubernetes discovery API the available API Groups and resources, 
+and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
+
+Examples:
+
+# Generate a Role with read-only (get,list) excluding secrets (core group) and ingresses (extensions group) 
+rbac-minimizer gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list
+
+# Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
+rbac-minimizer gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
+
 Usage:
-  rbac-minimize generate [flags]
+  rbac-minimizer generate [flags]
 
 Aliases:
   generate, gen
@@ -90,7 +124,5 @@ Flags:
       --deny-resources strings   Comma separated list of resource.group
   -t, --generated-type string    Role or ClusteRole (default "ClusterRole")
   -h, --help                     help for generate
-
-
 ```
 

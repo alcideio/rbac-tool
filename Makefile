@@ -3,7 +3,7 @@
 .SECONDEXPANSION:
 
 
-get-deps: ##@Install Dependencies Linux
+get-deps: ##@Build Install Go Dependencies
 	go mod vendor
 
 
@@ -11,8 +11,8 @@ VERSION ?= 1.0.0
 
 
 .phony: rbac-minimizer
-rbac-minimizer: ##@KubeDialer Build rbac-minimizer
-	export CGO_ENABLED=0 && go build -o rbac-minimizer -tags staticbinary -i -v -ldflags='-s -w' .
+rbac-minimizer: ##@Build Build rbac-minimizer
+	export CGO_ENABLED=0 && go build -o build/rbac-minimizer -tags staticbinary -i -v -ldflags='-s -w' .
 
 
 HELP_FUN = \
@@ -30,5 +30,3 @@ help: ##@Misc Show this help
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
-
-USERID=$(shell id -u)

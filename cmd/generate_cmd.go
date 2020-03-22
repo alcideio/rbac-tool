@@ -35,7 +35,7 @@ func NewCommandGenerateClusterRole() *cobra.Command {
 		Long: `
 Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-rbac-generator read from the Kubernetes discovery API the available API Groups and resources, 
+rbac-minimizer read from the Kubernetes discovery API the available API Groups and resources, 
 and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
 
 Examples:

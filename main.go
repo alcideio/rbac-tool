@@ -11,9 +11,9 @@ import (
 
 func RbacGenCmd() *cobra.Command {
 	var RootCmd = &cobra.Command{
-		Use:   "rbac-cluster-role",
-		Short: "rbac-cluster-role",
-		Long:  `rbac-cluster-role`,
+		Use:   "rbac-minimizer",
+		Short: "rbac-minimizer",
+		Long:  `rbac-minimizer`,
 	}
 
 	var genBashCompletionCmd = &cobra.Command{
