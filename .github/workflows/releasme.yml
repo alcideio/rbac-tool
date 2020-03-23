@@ -5,9 +5,8 @@ on:
     # branches to consider in the event; optional, defaults to all
     branches:
       - master
-    # Sequence of patterns matched against refs/tags
-    #tags:
-    #  - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    paths-ignore:         # Don't trigger on files that are updated by the CI
+      - README.md      
 
 jobs:
   build:
