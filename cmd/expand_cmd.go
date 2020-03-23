@@ -16,7 +16,7 @@ package cmd
 //	"k8s.io/apimachinery/pkg/util/errors"
 //	"k8s.io/apimachinery/pkg/util/sets"
 //
-//	"github.com/alcideio/rbac-minimize/kube"
+//	"github.com/alcideio/rbac-tool/kube"
 //)
 //
 //func NewCommandExpandPolicyRules() *cobra.Command {
@@ -41,7 +41,7 @@ package cmd
 //Examples:
 //
 //# Generate a ClusterRole Read Only excluding secrets (core group) and apps (extensions group)
-//rbac-minimize expand -f rbac.yaml --expand-groups=,apps --expand-verbs=false
+//rbac-tool expand -f rbac.yaml --expand-groups=,apps --expand-verbs=false
 //
 //`,
 //		Hidden: false,

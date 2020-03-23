@@ -21,14 +21,14 @@ template: |
 
     $CHANGES
 
-    ## rbac-minimize
+    ## rbac-tool
     Generate Role or ClusterRole resource while reducing the use of wildcards.
 
-    `rbac-minimize` read from the Kubernetes discovery API the available API Groups and resources,
+    `rbac-tool` read from the Kubernetes discovery API the available API Groups and resources,
     and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
 
     Example:
 
     ```shell script
-    rbac-minimize  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
+    rbac-tool  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
     ```

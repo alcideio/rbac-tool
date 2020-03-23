@@ -45,8 +45,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: _dist/rbac-minimize-darwin-amd64.tar.gz
-          asset_name: rbac-minimize-darwin-amd64.tar.gz
+          asset_path: _dist/rbac-tool-darwin-amd64.tar.gz
+          asset_name: rbac-tool-darwin-amd64.tar.gz
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset (linux-386)
@@ -56,8 +56,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: _dist/rbac-minimize-linux-386.tar.gz
-          asset_name: rbac-minimize-linux-386.tar.gz
+          asset_path: _dist/rbac-tool-linux-386.tar.gz
+          asset_name: rbac-tool-linux-386.tar.gz
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset (linux-amd64)
@@ -67,8 +67,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: _dist/rbac-minimize-linux-amd64.tar.gz
-          asset_name: rbac-minimize-linux-amd64.tar.gz
+          asset_path: _dist/rbac-tool-linux-amd64.tar.gz
+          asset_name: rbac-tool-linux-amd64.tar.gz
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset (windows-amd6)
@@ -78,6 +78,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: _dist/rbac-minimize-windows-amd64.tar.gz
-          asset_name: rbac-minimize-windows-amd64.tar.gz
+          asset_path: _dist/rbac-tool-windows-amd64.tar.gz
+          asset_name: rbac-tool-windows-amd64.tar.gz
           asset_content_type: application/octet-stream

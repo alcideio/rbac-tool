@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alcideio/rbac-minimize/cmd"
+	"github.com/alcideio/rbac-tool/cmd"
 	"github.com/spf13/cobra"
 )
 
 func RbacGenCmd() *cobra.Command {
 	var RootCmd = &cobra.Command{
-		Use:   "rbac-minimize",
-		Short: "rbac-minimize",
-		Long:  `rbac-minimize`,
+		Use:   "rbac-tool",
+		Short: "rbac-tool",
+		Long:  `rbac-tool`,
 	}
 
 	var genBashCompletionCmd = &cobra.Command{

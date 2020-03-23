@@ -1,4 +1,4 @@
-module github.com/alcideio/rbac-minimize
+module github.com/alcideio/rbac-tool
 
 go 1.13
 
