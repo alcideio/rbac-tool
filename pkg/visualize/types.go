@@ -9,7 +9,7 @@ import (
 type Opts struct {
 	ClusterContext string
 	Outfile        string
-	Outformat        string
+	Outformat      string
 	ShowRules      bool
 	ShowLegend     bool
 
@@ -20,12 +20,10 @@ type Opts struct {
 	resourceNames []string
 }
 
-
 type Permissions struct {
 	ServiceAccounts map[string]map[string]v1.ServiceAccount  // map[namespace]map[name]ServiceAccount
-	Roles           map[string]map[string]rbacv1.Role    // ClusterRoles are stored in Roles[""]
+	Roles           map[string]map[string]rbacv1.Role        // ClusterRoles are stored in Roles[""]
 	RoleBindings    map[string]map[string]rbacv1.RoleBinding // ClusterRoleBindings are stored in RoleBindings[""]
-
 
 	ServiceAccountsUsed sets.String
 	Pods                map[string]map[string]v1.Pod //map[namespace]map[name]Pod

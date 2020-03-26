@@ -172,7 +172,7 @@ func (r *HtmlReport) generateBody() string {
 					  <ul class="list-group list-group-flush">
 						<div><li class="list-group-item border-ligh">{{ generateGraph .Legend "legend" "100%" }}</li></div>
 					  </ul>
-					  <div class="card-header text-center">
+					  <div class="bg-light p-1 text-center">
 						Legend
 					  </div>
 					</div>

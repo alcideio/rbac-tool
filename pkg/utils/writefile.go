@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"syscall"
-
 )
 
 // FileExists checks if specified file exists.

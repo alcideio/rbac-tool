@@ -19,12 +19,11 @@ func CreateRBACGraph(client *kube.KubeClient, opts *Opts) error {
 	inNs, exNs := utils.GetNamespaceSets(opts.IncludedNamespaces, opts.ExcludedNamespaces)
 
 	rbacViz := RbacViz{
-		opts: *opts,
+		opts:   *opts,
 		client: client,
 
 		includedNamespace: inNs,
 		excludedNamespace: exNs,
-
 	}
 
 	err := rbacViz.initialize()
@@ -42,12 +41,12 @@ func CreateRBACGraph(client *kube.KubeClient, opts *Opts) error {
 }
 
 type RbacViz struct {
-	opts        Opts
+	opts   Opts
 	client *kube.KubeClient
 
 	includedNamespace sets.String
 	excludedNamespace sets.String
-	permissions Permissions
+	permissions       Permissions
 }
 
 func (r *RbacViz) initialize() (err error) {
@@ -63,7 +62,7 @@ func (r *RbacViz) initialize() (err error) {
 		return err
 	}
 
-	for _,sa := range sas {
+	for _, sa := range sas {
 
 		if r.permissions.ServiceAccounts[sa.Namespace] == nil {
 			r.permissions.ServiceAccounts[sa.Namespace] = make(map[string]v1.ServiceAccount)
@@ -79,7 +78,7 @@ func (r *RbacViz) initialize() (err error) {
 		return err
 	}
 
-	for _,role := range roles {
+	for _, role := range roles {
 
 		if r.permissions.Roles[role.Namespace] == nil {
 			r.permissions.Roles[role.Namespace] = make(map[string]rbacv1.Role)
@@ -94,7 +93,7 @@ func (r *RbacViz) initialize() (err error) {
 		return err
 	}
 
-	for _,role := range clusterRoles {
+	for _, role := range clusterRoles {
 		if r.permissions.Roles[""] == nil {
 			r.permissions.Roles[""] = make(map[string]rbacv1.Role)
 		}
@@ -113,7 +112,7 @@ func (r *RbacViz) initialize() (err error) {
 		return err
 	}
 
-	for _,binding := range bindings {
+	for _, binding := range bindings {
 		if r.permissions.RoleBindings[binding.Namespace] == nil {
 			r.permissions.RoleBindings[binding.Namespace] = make(map[string]rbacv1.RoleBinding)
 		}
@@ -127,7 +126,7 @@ func (r *RbacViz) initialize() (err error) {
 		return err
 	}
 
-	for _,binding := range clusterBindings {
+	for _, binding := range clusterBindings {
 		if r.permissions.RoleBindings[""] == nil {
 			r.permissions.RoleBindings[""] = make(map[string]rbacv1.RoleBinding)
 		}
@@ -147,7 +146,7 @@ func (r *RbacViz) initialize() (err error) {
 		return err
 	}
 
-	for _,pod := range pods {
+	for _, pod := range pods {
 		if r.permissions.Pods[pod.Namespace] == nil {
 			r.permissions.Pods[pod.Namespace] = make(map[string]v1.Pod)
 		}
@@ -162,13 +161,12 @@ func (r *RbacViz) initialize() (err error) {
 }
 
 func (r *RbacViz) isBindingUsed(binding rbacv1.RoleBinding) bool {
-	for _,subject := range binding.Subjects {
+	for _, subject := range binding.Subjects {
 
 		if !utils.IsNamespaceIncluded(subject.Namespace, r.includedNamespace, r.excludedNamespace) {
 			klog.V(5).Infof(">>> [skip][ClusterRole/Role Binding %v/%v] ServiceAccount %v/%v - not in namespace inclusion list", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
 			continue
 		}
-
 
 		if r.permissions.ServiceAccountsUsed.Has(fmt.Sprintf("%s/%s", subject.Namespace, subject.Name)) {
 			klog.V(5).Infof(">> [used][ClusterRole/Role Binding %v/%v] - used by %v/%v", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
@@ -199,7 +197,8 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 		for _, binding := range bindings {
 
 			//Check that this a namespace we would like to visualize
-			if !utils.IsNamespaceIncluded(binding.Namespace, r.includedNamespace, r.excludedNamespace) {
+			// Binding with "" namespace are clusterrole bindings
+			if binding.Namespace != "" && !utils.IsNamespaceIncluded(binding.Namespace, r.includedNamespace, r.excludedNamespace) {
 				klog.V(5).Infof("Skiping %v/%v - namespace '%s' not included", binding.Namespace, binding.Name, binding.Namespace)
 				continue
 			}
@@ -232,43 +231,6 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 			}
 		}
 	}
-
-	//for ns, sas := range r.permissions.ServiceAccounts {
-	//	if !r.namespaceSelected(ns) {
-	//		continue
-	//	}
-	//	gns := newNamespaceSubgraph(g, ns)
-	//
-	//	for sa, _ := range sas {
-	//		renderSA := r.opts.resourceKind == "" || (r.namespaceSelected(ns) && r.resourceNameSelected(sa))
-	//		if renderSA {
-	//			r.newSubjectNode(gns, "ServiceAccount", ns, sa)
-	//		}
-	//	}
-	//}
-
-	// draw any additional Roles that weren't referenced by bindings (and thus already drawn)
-	//for ns, roles := range r.permissions.Roles {
-	//	var renderRoles bool
-	//
-	//	areClusterRoles := ns == ""
-	//	if areClusterRoles {
-	//		renderRoles = (r.opts.resourceKind == "" || r.opts.resourceKind == kindClusterRole) && r.allNamespaces()
-	//	} else {
-	//		renderRoles = (r.opts.resourceKind == "" || r.opts.resourceKind == kindRole) && r.namespaceSelected(ns)
-	//	}
-	//
-	//	if !renderRoles {
-	//		continue
-	//	}
-	//
-	//	nsSubGraph := newNamespaceSubgraph(g, ns)
-	//	for roleName, _ := range roles {
-	//		if utils.IsNamespaceIncluded(ns, r.includedNamespace, r.excludedNamespace) &&  r.resourceNameSelected(roleName) {
-	//			r.newRoleAndRulesNodePair(nsSubGraph, "", NamespacedName{ns, roleName})
-	//		}
-	//	}
-	//}
 
 	return g
 }
@@ -329,7 +291,7 @@ func (r *RbacViz) newRoleAndRulesNodePair(gns *dot.Graph, bindingNamespace strin
 		roleNamespace = bindingNamespace
 		roleNode = newRoleNode(gns, bindingNamespace, roleRef.Name, r.roleExists(bindingNamespace, roleRef.Name), false)
 	}
-	
+
 	if r.opts.ShowRules {
 		rulesNode := r.newFormattedRulesNode(gns, roleNamespace, roleRef.Name, false)
 		if rulesNode != nil {
@@ -398,7 +360,6 @@ func (r *RbacViz) newFormattedRulesNode(g *dot.Graph, namespace, roleName string
 	return &node
 }
 
-
 func toRuleToTableRow(rule rbacv1.PolicyRule) string {
 	verbs := strings.Join(rule.Verbs, ",")
 	apiGroups := ""
@@ -419,7 +380,7 @@ func toRuleToTableRow(rule rbacv1.PolicyRule) string {
 		nonResourceURLs += strings.Join(rule.NonResourceURLs, ",")
 	}
 
-	for i,apigroup := range rule.APIGroups {
+	for i, apigroup := range rule.APIGroups {
 		if apigroup == "" {
 			apigroup = "core"
 		}

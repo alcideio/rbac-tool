@@ -15,17 +15,17 @@ const (
 	serviceAccountOutline = "#01040a"
 	serviceAccountText    = "white"
 
-	roleColor             = "#17b87e"
-	roleColorOutline      = "#01080a"
-	roleColorText         = "white"
+	roleColor        = "#17b87e"
+	roleColorOutline = "#01080a"
+	roleColorText    = "white"
 
 	roleBindingColor        = "#17b87e"
 	roleBindingColorOutline = "#01080a"
 	roleBindingColorText    = "white"
 
-	clusterRoleColor             = "#747474"
-	clusterRoleColorOutline      = "#01080a"
-	clusterRoleColorText         = "#f4f4f4"
+	clusterRoleColor        = "#747474"
+	clusterRoleColorOutline = "#01080a"
+	clusterRoleColorText    = "#f4f4f4"
 
 	clusterRoleBindingColor        = "#747474"
 	clusterRoleBindingColorOutline = "#01080a"

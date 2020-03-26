@@ -24,12 +24,12 @@ func NewCommandVisualize() *cobra.Command {
 A Kubernetes RBAC visualizer - Generate a graph as dot file format.
 
 By default 'rbac-tool viz' will connect to the local cluster (pointed by kubeconfig)
-Create an RBAC graph of the actively running workload on all namespaces except kube-system
+Create a RBAC graph of the actively running workload on all namespaces except kube-system
 
 See run options on how to render specific namespaces, other clusters, etc.
 
 #Render Locally
-rbac-tool viz && cat rbac.dot | dot -Tpng > rbac.png  && open rbac.png
+rbac-tool viz --outformat dot && cat rbac.dot | dot -Tpng > rbac.png  && open rbac.png
 
 # Render Online
 https://dreampuf.github.io/GraphvizOnline
@@ -40,14 +40,13 @@ Examples:
 rbac-tool viz --cluster-context myctx
 
 # Scan and create a PNG image from the graph
-rbac-tool viz --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
+rbac-tool viz  --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
 
 `,
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
 
 			utils.ConsolePrinter(fmt.Sprintf("Connecting to cluster '%v'", color.HiBlueString(opts.ClusterContext)))
-
 
 			kubeClient, err := kube.NewClient(opts.ClusterContext)
 			if err != nil {
