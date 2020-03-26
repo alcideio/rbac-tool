@@ -2,6 +2,7 @@ package kube
 
 import (
 	"github.com/rs/zerolog/log"
+	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -75,7 +76,7 @@ func NewClient(context string) (*KubeClient, error) {
 	}, nil
 }
 
-func (kubeClient *KubeClient) GetClusterGodPermissions() ([]rbacv1.PolicyRule, error) {
+func (kubeClient *KubeClient) GetWorldPermissions() ([]rbacv1.PolicyRule, error) {
 	errs := []error{}
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
 
@@ -168,3 +169,65 @@ func (kubeClient *KubeClient) GetVerbsForResource(apiGroup string, resource stri
 
 	return verbs, errors.NewAggregate(errs)
 }
+
+func (kubeClient *KubeClient) ListPods(namespace string) ([]v1.Pod, error) {
+	objs, err :=  kubeClient.Client.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) ListServiceAccounts(namespace string) ([]v1.ServiceAccount, error) {
+	objs, err :=  kubeClient.Client.CoreV1().ServiceAccounts(namespace).List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) ListRoles(namespace string) ([]rbacv1.Role, error) {
+	objs, err :=  kubeClient.Client.RbacV1().Roles(namespace).List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) ListRoleBindings(namespace string) ([]rbacv1.RoleBinding, error) {
+	objs, err :=  kubeClient.Client.RbacV1().RoleBindings(namespace).List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) ListClusterRoles() ([]rbacv1.ClusterRole, error) {
+	objs, err :=  kubeClient.Client.RbacV1().ClusterRoles().List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) ListClusterRoleBindings() ([]rbacv1.ClusterRoleBinding, error) {
+	objs, err :=  kubeClient.Client.RbacV1().ClusterRoleBindings().List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+
