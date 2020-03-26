@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/alcideio/rbac-tool/kube"
+	"github.com/alcideio/rbac-tool/pkg/kube"
 )
 
 func NewCommandGenerateClusterRole() *cobra.Command {

@@ -30,6 +30,7 @@ func RbacGenCmd() *cobra.Command {
 	cmds := []*cobra.Command{
 		genBashCompletionCmd,
 		cmd.NewCommandGenerateClusterRole(),
+		cmd.NewCommandVisualize(),
 	}
 
 	RootCmd.AddCommand(cmds...)

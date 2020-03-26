@@ -9,9 +9,10 @@
 
 # rbac-tool
 
-A collection of Kubernetes RBAC tools that complement the Kubernetes native capabilities
+A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 
 - [Install](#install)
+- [The `rbac-tool viz` command](#-rbac-tool-viz-)
 - [The `rbac-tool gen` command](#-rbac-tool-gen-)
    * [How the command works?](#how--rbac-tool--works-)
    * [Command Line Examples](#command-line-examples)
@@ -49,6 +50,39 @@ ClusterRoles have several uses. You can use a ClusterRole to:
 If you want to define a role within a namespace, use a Role; if you want to define a role cluster-wide, use a ClusterRole.
 
 **rbac-tool** simplifies the creation process of RBAC policies and avoiding those wildcards `*` and it adapts to specific Kubernets API server
+
+
+# `rbac-tool viz`
+
+A Kubernetes RBAC visualizer that generate a graph as dot file format or in HTML format.
+
+<img src="img/rbac-viz-html-example.png" alt="rbac-tool" width="600"/>
+
+By default 'rbac-tool viz' will connect to the local cluster (pointed by kubeconfig)
+Create a RBAC graph of the actively running workload on all namespaces except kube-system
+
+See run options on how to render specific namespaces, other clusters, etc.
+
+```shell script
+#Render Locally
+rbac-tool viz --outformat dot && cat rbac.dot | dot -Tpng > rbac.png  && open rbac.png
+
+# Render Online
+https://dreampuf.github.io/GraphvizOnline
+```
+
+
+Examples:
+
+```shell script
+# Scan the cluster pointed by the kubeconfig context 'myctx'
+rbac-tool viz --cluster-context myctx
+```
+
+```shell script
+# Scan and create a PNG image from the graph
+rbac-tool viz --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
+```
 
 
 # `rbac-tool gen`
