@@ -86,7 +86,7 @@ func newRoleNode(g *dot.Graph, namespace, name string, exists, highlight bool) d
 		Attr("color", iff(exists, roleColorOutline, redOutline)).
 		Attr("penwidth", iff(highlight || !exists, "2.0", "1.0")).
 		Attr("fillcolor", roleColor).
-		Attr("fontcolor", roleColorText).
+		Attr("fontcolor", iff(exists, roleColorText, "#030303")).
 		Attr("fontname", fontName)
 	g.Root().AddToSameRank("Roles", node)
 	return node
@@ -112,7 +112,7 @@ func newClusterRoleNode(g *dot.Graph, bindingNamespace, roleName string, exists,
 		Attr("color", iff(exists, clusterRoleColorOutline, redOutline)).
 		Attr("penwidth", iff(highlight || !exists, "2.0", "1.0")).
 		Attr("fillcolor", clusterRoleColor).
-		Attr("fontcolor", clusterRoleColorText).
+		Attr("fontcolor", iff(exists, clusterRoleColorText, "#030303")).
 		Attr("fontname", fontName)
 	g.Root().AddToSameRank("Roles", node)
 	return node
