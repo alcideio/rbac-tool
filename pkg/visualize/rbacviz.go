@@ -3,6 +3,7 @@ package visualize
 import (
 	"fmt"
 	"github.com/alcideio/rbac-tool/pkg/kube"
+	"github.com/alcideio/rbac-tool/pkg/rbac"
 	"github.com/alcideio/rbac-tool/pkg/utils"
 	"github.com/fatih/color"
 	v1 "k8s.io/api/core/v1"
@@ -14,19 +15,17 @@ import (
 	"github.com/emicklei/dot"
 )
 
-func CreateRBACGraph(client *kube.KubeClient, opts *Opts) error {
-
+func CreateRBACGraph(opts *Opts) error {
 	inNs, exNs := utils.GetNamespaceSets(opts.IncludedNamespaces, opts.ExcludedNamespaces)
 
 	rbacViz := RbacViz{
-		opts:   *opts,
-		client: client,
+		opts: opts,
 
 		includedNamespace: inNs,
 		excludedNamespace: exNs,
 	}
 
-	err := rbacViz.initialize()
+	err := rbacViz.initialize(opts)
 	if err != nil {
 		return err
 	}
@@ -41,120 +40,74 @@ func CreateRBACGraph(client *kube.KubeClient, opts *Opts) error {
 }
 
 type RbacViz struct {
-	opts   Opts
-	client *kube.KubeClient
+	opts *Opts
 
 	includedNamespace sets.String
 	excludedNamespace sets.String
 	permissions       Permissions
 }
 
-func (r *RbacViz) initialize() (err error) {
+func (r *RbacViz) initialize(opts *Opts) error {
 
-	r.permissions.ServiceAccounts = make(map[string]map[string]v1.ServiceAccount)
-	r.permissions.Roles = make(map[string]map[string]rbacv1.Role)
-	r.permissions.RoleBindings = make(map[string]map[string]rbacv1.RoleBinding)
-	r.permissions.Pods = make(map[string]map[string]v1.Pod)
-	r.permissions.ServiceAccountsUsed = sets.NewString()
+	if opts.Infile == "" {
+		//Connect to the cluster
 
-	sas, err := r.client.ListServiceAccounts(v1.NamespaceAll)
-	if err != nil {
-		return err
-	}
+		var client *kube.KubeClient
+		var err error
 
-	for _, sa := range sas {
+		utils.ConsolePrinter(fmt.Sprintf("Connecting to cluster '%v'", color.HiBlueString(opts.ClusterContext)))
 
-		if r.permissions.ServiceAccounts[sa.Namespace] == nil {
-			r.permissions.ServiceAccounts[sa.Namespace] = make(map[string]v1.ServiceAccount)
+		client, err = kube.NewClient(opts.ClusterContext)
+		if err != nil {
+			return fmt.Errorf("Failed to create kubernetes client - %v", err)
 		}
 
-		r.permissions.ServiceAccounts[sa.Namespace][sa.Name] = sa
-
-		klog.V(6).Infof("ServiceAccount %v/%v", sa.Namespace, sa.Name)
-	}
-
-	roles, err := r.client.ListRoles(v1.NamespaceAll)
-	if err != nil {
-		return err
-	}
-
-	for _, role := range roles {
-
-		if r.permissions.Roles[role.Namespace] == nil {
-			r.permissions.Roles[role.Namespace] = make(map[string]rbacv1.Role)
+		perms, err := rbac.NewPermissionsFromCluster(client)
+		if err != nil {
+			return err
 		}
 
-		r.permissions.Roles[role.Namespace][role.Name] = role
-		klog.V(6).Infof("Role %v/%v", role.Namespace, role.Name)
-	}
+		r.permissions.Permissions = *perms
+		r.permissions.Pods = make(map[string]map[string]v1.Pod)
+		r.permissions.ServiceAccountsUsed = sets.NewString()
 
-	clusterRoles, err := r.client.ListClusterRoles()
-	if err != nil {
-		return err
-	}
+		if opts.ShowPodsOnly {
+			pods, err := client.ListPods(v1.NamespaceAll)
+			if err != nil {
+				return err
+			}
 
-	for _, role := range clusterRoles {
-		if r.permissions.Roles[""] == nil {
-			r.permissions.Roles[""] = make(map[string]rbacv1.Role)
+			for _, pod := range pods {
+				if r.permissions.Pods[pod.Namespace] == nil {
+					r.permissions.Pods[pod.Namespace] = make(map[string]v1.Pod)
+				}
+
+				r.permissions.Pods[pod.Namespace][pod.Name] = pod
+
+				r.permissions.ServiceAccountsUsed.Insert(fmt.Sprintf("%s/%s", pod.Namespace, pod.Spec.ServiceAccountName))
+				klog.V(6).Infof("Pod %v/%v use ServiceAccount %v/%v", pod.Namespace, pod.Name, pod.Namespace, pod.Spec.ServiceAccountName)
+			}
 		}
 
-		aRole := rbacv1.Role{
-			ObjectMeta: role.ObjectMeta,
-			Rules:      role.Rules,
+	} else {
+		utils.ConsolePrinter(fmt.Sprintf("Loading Resources from '%v'", color.HiBlueString(opts.Infile)))
+
+		// Load from file/stdin
+		objs, err := utils.ReadObjectsFromFile(opts.Infile)
+		if err != nil {
+			return err
 		}
 
-		r.permissions.Roles[role.Namespace][role.Name] = aRole
-		klog.V(6).Infof("ClusterRole %v", role.Name)
-	}
+		klog.V(5).Infof("Loaded %v resources", len(objs))
 
-	bindings, err := r.client.ListRoleBindings(v1.NamespaceAll)
-	if err != nil {
-		return err
-	}
-
-	for _, binding := range bindings {
-		if r.permissions.RoleBindings[binding.Namespace] == nil {
-			r.permissions.RoleBindings[binding.Namespace] = make(map[string]rbacv1.RoleBinding)
+		perms, err := rbac.NewPermissionsFromResourceList(objs)
+		if err != nil {
+			return err
 		}
 
-		r.permissions.RoleBindings[binding.Namespace][binding.Name] = binding
-		klog.V(6).Infof("RoleBinding %v/%v", binding.Namespace, binding.Name)
-	}
-
-	clusterBindings, err := r.client.ListClusterRoleBindings()
-	if err != nil {
-		return err
-	}
-
-	for _, binding := range clusterBindings {
-		if r.permissions.RoleBindings[""] == nil {
-			r.permissions.RoleBindings[""] = make(map[string]rbacv1.RoleBinding)
-		}
-
-		aBindinig := rbacv1.RoleBinding{
-			ObjectMeta: binding.ObjectMeta,
-			Subjects:   binding.Subjects,
-			RoleRef:    binding.RoleRef,
-		}
-
-		r.permissions.RoleBindings[""][binding.Name] = aBindinig
-		klog.V(6).Infof("ClusterRoleBinding %v", aBindinig.Name)
-	}
-
-	pods, err := r.client.ListPods(v1.NamespaceAll)
-	if err != nil {
-		return err
-	}
-
-	for _, pod := range pods {
-		if r.permissions.Pods[pod.Namespace] == nil {
-			r.permissions.Pods[pod.Namespace] = make(map[string]v1.Pod)
-		}
-
-		r.permissions.Pods[pod.Namespace][pod.Name] = pod
-
-		r.permissions.ServiceAccountsUsed.Insert(fmt.Sprintf("%s/%s", pod.Namespace, pod.Spec.ServiceAccountName))
-		klog.V(6).Infof("Pod %v/%v use ServiceAccount %v/%v", pod.Namespace, pod.Name, pod.Namespace, pod.Spec.ServiceAccountName)
+		r.permissions.Permissions = *perms
+		r.permissions.Pods = make(map[string]map[string]v1.Pod)
+		r.permissions.ServiceAccountsUsed = sets.NewString()
 	}
 
 	return nil
@@ -166,6 +119,10 @@ func (r *RbacViz) isBindingUsed(binding rbacv1.RoleBinding) bool {
 		if !utils.IsNamespaceIncluded(subject.Namespace, r.includedNamespace, r.excludedNamespace) {
 			klog.V(5).Infof(">>> [skip][ClusterRole/Role Binding %v/%v] ServiceAccount %v/%v - not in namespace inclusion list", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
 			continue
+		}
+
+		if !r.opts.ShowPodsOnly {
+			return true
 		}
 
 		if r.permissions.ServiceAccountsUsed.Has(fmt.Sprintf("%s/%s", subject.Namespace, subject.Name)) {
