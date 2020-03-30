@@ -34,23 +34,26 @@ GIT_SHA    = $(shell git rev-parse --short HEAD)
 GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 GIT_DIRTY  = $(shell test -n "`git status --porcelain`" && echo "dirty" || echo "clean")
 
-#ifdef VERSION
-#	BINARY_VERSION = $(VERSION)
-#endif
-#BINARY_VERSION ?= ${GIT_TAG}
-#
+
+LDFLAGS += -X github.com/alcideio/rbac-tool/cmd.Commit=${GIT_SHA}
+
+ifdef VERSION
+	BINARY_VERSION = $(VERSION)
+endif
+BINARY_VERSION ?= ${GIT_TAG}
+
 ## Only set Version if building a tag or VERSION is set
-#ifneq ($(BINARY_VERSION),)
-#	LDFLAGS += -X helm.sh/helm/v3/internal/version.version=${BINARY_VERSION}
-#endif
-#
+ifneq ($(BINARY_VERSION),)
+	LDFLAGS += -X github.com/alcideio/rbac-tool/cmd.Version=${BINARY_VERSION}
+endif
+
 #VERSION_METADATA = unreleased
 ## Clear the "unreleased" string in BuildMetadata
 #ifneq ($(GIT_TAG),)
 #	VERSION_METADATA =
 #endif
 
-VERSION ?= 1.0.0
+#VERSION ?= 1.0.0
 
 $(GOX):
 	(cd /; GO111MODULE=on go get -u github.com/mitchellh/gox)
@@ -61,7 +64,7 @@ get-deps: $(GOX) ##@Build Install Go Dependencies
 
 .PHONY: build
 build: ##@Build Build on local platform
-	export CGO_ENABLED=0 && go build -o $(BINDIR)/$(BINNAME) -tags staticbinary -i -v -ldflags='-s -w' .
+	export CGO_ENABLED=0 && go build -o $(BINDIR)/$(BINNAME) -tags staticbinary -i -v -ldflags '$(LDFLAGS)' .
 
 .PHONY: build-cross
 build-cross: LDFLAGS += -extldflags "-static"

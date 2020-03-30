@@ -3,7 +3,6 @@ package cmd
 import (
 	goflag "flag"
 	"fmt"
-	"github.com/alcideio/rbac-tool/pkg/kube"
 	"github.com/alcideio/rbac-tool/pkg/utils"
 	"github.com/alcideio/rbac-tool/pkg/visualize"
 	"github.com/fatih/color"
@@ -13,7 +12,7 @@ import (
 
 func NewCommandVisualize() *cobra.Command {
 
-	opts := visualize.Opts{}
+	opts := &visualize.Opts{}
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -36,24 +35,25 @@ https://dreampuf.github.io/GraphvizOnline
 
 Examples:
 
-# Scan the cluster pointed by the kubeconfig context 'myctx'
+# Generate RBAC Graph of a cluster pointed by the kubeconfig context 'myctx'
 rbac-tool viz --cluster-context myctx
 
-# Scan and create a PNG image from the graph
+# Generate RBAC Graph of a cluster and create a PNG image from the graph
 rbac-tool viz  --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
+
+# Generate RBAC Graph from the output of kubectl
+kubectl get roles,rolebindings,clusterroles,clusterrolebindings,serviceaccounts -A -o yaml | rbac-tool viz  --file - 
+
+# Generate RBAC Graph for permissions used by cluster pods 
+rbac-tool viz --include-pods-only
 
 `,
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
 
-			utils.ConsolePrinter(fmt.Sprintf("Connecting to cluster '%v'", color.HiBlueString(opts.ClusterContext)))
-
-			kubeClient, err := kube.NewClient(opts.ClusterContext)
-			if err != nil {
-				return fmt.Errorf("Failed to create kubernetes client - %v", err)
+			if err := opts.Validate(); err != nil {
+				return err
 			}
-
-			utils.ConsolePrinter(fmt.Sprintf("Generating RBAC Graph to cluster '%v'", color.HiBlueString(opts.ClusterContext)))
 
 			utils.ConsolePrinter(fmt.Sprintf("Namespaces included %v", color.GreenString("'%v'", opts.IncludedNamespaces)))
 
@@ -61,17 +61,21 @@ rbac-tool viz  --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot
 				utils.ConsolePrinter(fmt.Sprintf("Namespaces excluded %v", color.HiRedString("'%v'", opts.ExcludedNamespaces)))
 			}
 
-			return visualize.CreateRBACGraph(kubeClient, &opts)
+			return visualize.CreateRBACGraph(opts)
 		},
 	}
 
 	flags := cmd.Flags()
 
 	flags.StringVar(&opts.ClusterContext, "cluster-context", "", "Cluster Context .use 'kubectl config get-contexts' to list available contexts")
+	flags.StringVarP(&opts.Infile, "file", "f", "", "Input File - use '-' to read from stdin")
+
 	flags.StringVar(&opts.Outfile, "outfile", "rbac.html", "Output file")
 	flags.StringVar(&opts.Outformat, "outformat", "html", "Output format: dot or html")
 	flags.StringVar(&opts.IncludedNamespaces, "include-namespaces", "*", "Comma-delimited list of namespaces to include in the visualization")
 	flags.StringVar(&opts.ExcludedNamespaces, "exclude-namespaces", "kube-system", "Comma-delimited list of namespaces to include in the visualization")
+
+	flags.BoolVar(&opts.ShowPodsOnly, "include-pods-only", false, "Show the graph only for service accounts used by Pods")
 
 	flags.BoolVar(&opts.ShowLegend, "show-legend", false, "Whether to show the legend or not (for dot format)")
 	flags.BoolVar(&opts.ShowRules, "show-rules", true, "Whether to render RBAC access rules (e.g. \"get pods\") or not")
