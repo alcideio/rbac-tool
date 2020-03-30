@@ -12,9 +12,9 @@
 A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 
 - [Install](#install)
-- [The `rbac-tool viz` command](#-rbac-tool-viz-)
-- [The `rbac-tool lookup` command](#-rbac-tool-lookup-)
-- [The `rbac-tool gen` command](#-rbac-tool-gen-)
+- [The `rbac-tool viz` command](#rbac-tool-viz)
+- [The `rbac-tool lookup` command](#rbac-tool-lookup)
+- [The `rbac-tool gen` command](#rbac-tool-gen)
 - [Command Line Reference](#command-line-reference)
 - [Contributing](#contributing)
 
