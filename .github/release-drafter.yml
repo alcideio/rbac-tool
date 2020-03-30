@@ -22,13 +22,19 @@ template: |
     $CHANGES
 
     ## rbac-tool
-    Generate Role or ClusterRole resource while reducing the use of wildcards.
+    A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 
-    `rbac-tool` read from the Kubernetes discovery API the available API Groups and resources,
-    and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards
+    Examples:
 
-    Example:
+    ```shell script
+    rbac-tool  lookup
+    ```
+
+    ```shell script
+    rbac-tool  viz
+    ```
 
     ```shell script
     rbac-tool  gen --generated-type=Role --deny-resources=secrets.,daemonsets.apps --allowed-verbs=get,list --allowed-groups=,apps,networking.k8s.io
     ```
+
