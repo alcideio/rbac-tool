@@ -13,10 +13,8 @@ A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 
 - [Install](#install)
 - [The `rbac-tool viz` command](#-rbac-tool-viz-)
+- [The `rbac-tool lookup` command](#-rbac-tool-lookup-)
 - [The `rbac-tool gen` command](#-rbac-tool-gen-)
-   * [How the command works?](#how--rbac-tool--works-)
-   * [Command Line Examples](#command-line-examples)
-   * [Example Output](#example-output)
 - [Command Line Reference](#command-line-reference)
 - [Contributing](#contributing)
 
@@ -84,6 +82,38 @@ rbac-tool viz --cluster-context myctx
 rbac-tool viz --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
 ```
 
+# `rbac-tool lookup`
+Lookup of the Roles/ClusterRoles used attached to User/ServiceAccount/Group with or without [regex](https://regex101.com/)
+
+
+Examples:
+
+```shell script
+# Search All Service Accounts
+rbac-tool lookup -e '.*'
+```
+
+```shell script
+# Search All Service Accounts That Contains myname
+rbac-tool lookup -e '.*myname.*'
+```
+
+```shell script
+rbac-tool lookup -e '^system:'
+  SUBJECT                                         | SUBJECT TYPE | SCOPE       | NAMESPACE   | ROLE                                                                  
++-------------------------------------------------+--------------+-------------+-------------+----------------------------------------------------------------------+
+  system:anonymous                                | User         | Role        | kube-public | kubeadm:bootstrap-signer-clusterinfo                                  
+  system:authenticated                            | Group        | ClusterRole |             | system:discovery                                                      
+  system:authenticated                            | Group        | ClusterRole |             | system:public-info-viewer                                             
+  system:authenticated                            | Group        | ClusterRole |             | system:basic-user                                                     
+  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | system:certificates.k8s.io:certificatesigningrequests:nodeclient      
+  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | system:node-bootstrapper                                              
+  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kubeadm:nodes-kubeadm-config                                          
+  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kubeadm:kubelet-config-1.16                                           
+  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kube-proxy                                                            
+  system:kube-controller-manager                  | User         | ClusterRole |             | system:kube-controller-manager       
+...
+```
 
 # `rbac-tool gen`
 

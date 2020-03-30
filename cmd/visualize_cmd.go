@@ -35,11 +35,17 @@ https://dreampuf.github.io/GraphvizOnline
 
 Examples:
 
-# Scan the cluster pointed by the kubeconfig context 'myctx'
+# Generate RBAC Graph of a cluster pointed by the kubeconfig context 'myctx'
 rbac-tool viz --cluster-context myctx
 
-# Scan and create a PNG image from the graph
+# Generate RBAC Graph of a cluster and create a PNG image from the graph
 rbac-tool viz  --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
+
+# Generate RBAC Graph from the output of kubectl
+kubectl get roles,rolebindings,clusterroles,clusterrolebindings,serviceaccounts -A -o yaml | rbac-tool viz  --file - 
+
+# Generate RBAC Graph for permissions used by cluster pods 
+rbac-tool viz --include-pods-only
 
 `,
 		Hidden: false,
