@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	goflag "flag"
 	"fmt"
 	"github.com/alcideio/rbac-tool/pkg/utils"
 	"github.com/alcideio/rbac-tool/pkg/visualize"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"k8s.io/klog"
 )
 
 func NewCommandVisualize() *cobra.Command {
@@ -73,6 +71,7 @@ rbac-tool viz --include-pods-only
 	flags.StringVar(&opts.Outfile, "outfile", "rbac.html", "Output file")
 	flags.StringVar(&opts.Outformat, "outformat", "html", "Output format: dot or html")
 	flags.StringVar(&opts.IncludedNamespaces, "include-namespaces", "*", "Comma-delimited list of namespaces to include in the visualization")
+	flags.StringVar(&opts.IncludeSubjectsRegex, "include-subjects", ".*", "A regular expression to limit the subjects we visualize")
 	flags.StringVar(&opts.ExcludedNamespaces, "exclude-namespaces", "kube-system", "Comma-delimited list of namespaces to include in the visualization")
 
 	flags.BoolVar(&opts.ShowPodsOnly, "include-pods-only", false, "Show the graph only for service accounts used by Pods")
@@ -80,7 +79,5 @@ rbac-tool viz --include-pods-only
 	flags.BoolVar(&opts.ShowLegend, "show-legend", false, "Whether to show the legend or not (for dot format)")
 	flags.BoolVar(&opts.ShowRules, "show-rules", true, "Whether to render RBAC access rules (e.g. \"get pods\") or not")
 
-	klog.InitFlags(nil)
-	flags.AddGoFlagSet(goflag.CommandLine)
 	return cmd
 }

@@ -10,6 +10,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog"
+	"regexp"
 	"strings"
 
 	"github.com/emicklei/dot"
@@ -45,6 +46,8 @@ type RbacViz struct {
 	includedNamespace sets.String
 	excludedNamespace sets.String
 	permissions       Permissions
+
+	includeSubjectsRegex *regexp.Regexp
 }
 
 func (r *RbacViz) initialize(opts *Opts) error {
@@ -110,6 +113,13 @@ func (r *RbacViz) initialize(opts *Opts) error {
 		r.permissions.ServiceAccountsUsed = sets.NewString()
 	}
 
+	var err error
+	r.includeSubjectsRegex, err = regexp.Compile(opts.IncludeSubjectsRegex)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -118,6 +128,10 @@ func (r *RbacViz) isBindingUsed(binding rbacv1.RoleBinding) bool {
 
 		if !utils.IsNamespaceIncluded(subject.Namespace, r.includedNamespace, r.excludedNamespace) {
 			klog.V(5).Infof(">>> [skip][ClusterRole/Role Binding %v/%v] ServiceAccount %v/%v - not in namespace inclusion list", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
+			continue
+		}
+
+		if !r.includeSubjectsRegex.MatchString(subject.Name) {
 			continue
 		}
 
@@ -178,6 +192,10 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 
 			saNodes := []dot.Node{}
 			for _, subject := range binding.Subjects {
+				if !r.includeSubjectsRegex.MatchString(subject.Name) {
+					klog.V(5).Infof("skipping subject %v/%v listed in binding %v/%v", binding.Namespace, subject, binding.Namespace, binding.Name)
+					continue
+				}
 				gns := newNamespaceSubgraph(g, subject.Namespace)
 				subjectNode := r.newSubjectNode(gns, subject.Kind, subject.Namespace, subject.Name)
 				saNodes = append(saNodes, subjectNode)
