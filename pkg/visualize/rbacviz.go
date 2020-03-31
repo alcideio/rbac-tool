@@ -192,6 +192,10 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 
 			saNodes := []dot.Node{}
 			for _, subject := range binding.Subjects {
+				if !r.includeSubjectsRegex.MatchString(subject.Name) {
+					klog.V(5).Infof("skipping subject %v/%v listed in binding %v/%v", binding.Namespace, subject, binding.Namespace, binding.Name)
+					continue
+				}
 				gns := newNamespaceSubgraph(g, subject.Namespace)
 				subjectNode := r.newSubjectNode(gns, subject.Kind, subject.Namespace, subject.Name)
 				saNodes = append(saNodes, subjectNode)
