@@ -10,9 +10,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/version"
 	clientset "k8s.io/client-go/kubernetes"
+
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure" // auth for AKS clusters
+	_ "k8s.io/client-go/plugin/pkg/client/auth/exec"  // auth for OIDC
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"   // auth for GKE clusters
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"  // auth for OIDC
+
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"strings"

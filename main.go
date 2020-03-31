@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	goflag "flag"
 	"fmt"
+	"k8s.io/klog"
 	"os"
 
 	"github.com/alcideio/rbac-tool/cmd"
@@ -10,7 +12,7 @@ import (
 )
 
 func RbacGenCmd() *cobra.Command {
-	var RootCmd = &cobra.Command{
+	var rootCmd = &cobra.Command{
 		Use:   "rbac-tool",
 		Short: "rbac-tool",
 		Long:  `rbac-tool`,
@@ -22,7 +24,7 @@ func RbacGenCmd() *cobra.Command {
 		Long:  "Generate bash completion. source < (advisor bash-completion)",
 		Run: func(cmd *cobra.Command, args []string) {
 			out := new(bytes.Buffer)
-			_ = RootCmd.GenBashCompletion(out)
+			_ = rootCmd.GenBashCompletion(out)
 			println(out.String())
 		},
 	}
@@ -35,9 +37,14 @@ func RbacGenCmd() *cobra.Command {
 		cmd.NewCommandLookup(),
 	}
 
-	RootCmd.AddCommand(cmds...)
+	flags := rootCmd.PersistentFlags()
 
-	return RootCmd
+	klog.InitFlags(nil)
+	flags.AddGoFlagSet(goflag.CommandLine)
+
+	rootCmd.AddCommand(cmds...)
+
+	return rootCmd
 }
 
 func main() {

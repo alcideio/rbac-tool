@@ -23,8 +23,7 @@ type Opts struct {
 	IncludedNamespaces string
 	ExcludedNamespaces string
 
-	resourceKind  string
-	resourceNames []string
+	IncludeSubjectsRegex string
 }
 
 func (o *Opts) Validate() error {
