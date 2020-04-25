@@ -240,7 +240,7 @@ func renderLegend(g *dot.Graph) {
 	newRoleToRulesEdge(role, nsrules)
 
 	nsrules2 := newRulesNode0(namespace, "ns", "ClusterRole", "Namespace-scoped access rules From ClusterRole", false)
-	nsrules2.Attr("label", "Namespace-scoped\naccess rules")
+	//nsrules2.Attr("label", "Namespace-scoped\naccess rules")
 	newRoleToRulesEdge(clusterRoleBoundLocally, nsrules2)
 
 	clusterrules := newRulesNode0(legend, "", "ClusterRole", "Cluster-scoped access rules", false)

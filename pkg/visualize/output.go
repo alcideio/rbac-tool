@@ -292,8 +292,8 @@ func (r *HtmlReport) Generate() (out string, err error) {
 </head>
 	<body>
 		<script src="https://d3js.org/d3.v5.min.js"></script>
-		<script src="https://unpkg.com/@hpcc-js/wasm@0.3.6/dist/index.min.js"></script>
-		<script src="https://unpkg.com/d3-graphviz@3.0.0/build/d3-graphviz.js"></script>
+		<script src="https://unpkg.com/viz.js@1.8.1/viz.js" type="application/javascript/"></script>
+		<script src="https://unpkg.com/d3-graphviz@2.6.1/build/d3-graphviz.js"></script>
 		
 		<!-- Core -->
 		<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
