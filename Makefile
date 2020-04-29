@@ -80,9 +80,11 @@ build: ##@build Build on local platform
 #
 #  1. Grab GITHUB Token of alcidebuilder from 1password
 #  2. export GITHUB_TOKEN=<thetoken>
-#  3. git tag -a v0.4.0-rbac-tool -m "my new version"
-#  4. make gorelease
+#  3. git tag -a v0.4.0 -m "my new version"
+#  4. git push origin v0.4.0
 #  5. Go to to https://github.com/alcideio/rbac-tool/releases and publish the release draft
+#
+#  Delete tag: git push origin --delete v0.7.0
 #
 .PHONY: gorelease
 gorelease: ##@build Generate All release artifacts
