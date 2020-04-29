@@ -7,7 +7,7 @@ on:
       - '*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  goreleaser:
+  releaseme:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,15 +18,9 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-      - name: Check GoReleaser config
-        uses: goreleaser/goreleaser-action@v1
-        with:
-          version: latest
-          args: check
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v1
-        with:
-          version: latest
-          args: release --rm-dist --release-notes=notes.md
+      - name: Build & Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make get-bins
+          make gorelease-snapshot

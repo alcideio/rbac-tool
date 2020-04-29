@@ -7,7 +7,7 @@ A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 ## Install
 
 ```shell script
-https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
+curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
 ```
 
 ## Command Line Examples
