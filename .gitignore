@@ -15,7 +15,8 @@
 vendor/
 
 build/*
-_dist/*
+dist/*
+bin/*
 
 .idea/
 
