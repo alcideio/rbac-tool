@@ -2,11 +2,11 @@
 name: release
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - 'master'
     paths-ignore:         # Don't trigger on files that are updated by the CI
       - README.md
-      -
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -24,6 +24,11 @@ jobs:
         with:
           version: latest
           args: check
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
