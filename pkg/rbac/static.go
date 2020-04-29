@@ -44,7 +44,7 @@ func (r *StaticRoles) ListRoleBindings(namespace string) ([]*rbacv1.RoleBinding,
 		if roleBinding.Namespace != namespace {
 			continue
 		}
-		// TODO(ericchiang): need to implement label selectors?
+
 		roleBindingList = append(roleBindingList, roleBinding)
 	}
 	return roleBindingList, nil
