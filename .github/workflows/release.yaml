@@ -2,10 +2,9 @@
 name: release
 on:
   push:
-    branches:
-      - 'master'
-    paths-ignore:         # Don't trigger on files that are updated by the CI
-      - README.md
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   goreleaser:
@@ -24,16 +23,10 @@ jobs:
         with:
           version: latest
           args: check
-      - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.17.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
           args: release --rm-dist
-        #  key: ${{ secrets.YOUR_PRIVATE_KEY }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
