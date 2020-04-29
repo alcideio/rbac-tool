@@ -42,6 +42,13 @@ func RbacGenCmd() *cobra.Command {
 	klog.InitFlags(nil)
 	flags.AddGoFlagSet(goflag.CommandLine)
 
+	// Hide all klog flags except for -v
+	goflag.CommandLine.VisitAll(func(f *goflag.Flag) {
+		if f.Name != "v" {
+			flags.Lookup(f.Name).Hidden = true
+		}
+	})
+
 	rootCmd.AddCommand(cmds...)
 
 	return rootCmd
