@@ -17,6 +17,8 @@ func NewCommandLookup() *cobra.Command {
 
 	clusterContext := ""
 	regex := ""
+	inverse := false
+
 	// Support overrides
 	cmd := &cobra.Command{
 		Use:     "lookup",
@@ -30,11 +32,14 @@ Examples:
 # Search All Service Accounts
 rbac-tool lookup -e '.*'
 
-# Search All Service Accounts That Contains myname
+# Search All Service Accounts that contain myname
 rbac-tool lookup -e '.*myname.*'
 
-# Lookup System Accounts (all accounts that starts with system: )
+# Lookup System Accounts (all accounts that start with system: )
 rbac-tool lookup -e '^system:.*'
+
+# Lookup all accounts that DO NOT start with system: )
+rbac-tool lookup -ne '^system:.*'
 
 `,
 		Hidden: false,
@@ -76,8 +81,22 @@ rbac-tool lookup -e '^system:.*'
 			for _, bindings := range perms.RoleBindings {
 				for _, binding := range bindings {
 					for _, subject := range binding.Subjects {
-						if !re.MatchString(subject.Name) {
-							continue
+						match := re.MatchString(subject.Name)
+
+						//  match    inverse
+						//  -----------------
+						//  true     true   --> skip
+						//  true     false  --> keep
+						//  false    true   --> keep
+						//  false    false  --> skip
+						if match {
+							if inverse {
+								continue
+							}
+						} else {
+							if !inverse {
+								continue
+							}
 						}
 
 						//Subject match
@@ -93,7 +112,6 @@ rbac-tool lookup -e '^system:.*'
 							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name}
 							rows = append(rows, row)
 						}
-
 					}
 				}
 			}
@@ -115,7 +133,8 @@ rbac-tool lookup -e '^system:.*'
 
 	flags := cmd.Flags()
 	flags.StringVar(&clusterContext, "cluster-context", "", "Cluster Context .use 'kubectl config get-contexts' to list available contexts")
-	flags.StringVarP(&regex, "regex", "e", "", "Specify whether run the lookup using a regex match")
 
+	flags.StringVarP(&regex, "regex", "e", "", "Specify whether run the lookup using a regex match")
+	flags.BoolVarP(&inverse, "not", "n", false, "Inverse the regex matching. Use to search for users that do not match '^system:.*'")
 	return cmd
 }
