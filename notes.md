@@ -24,6 +24,12 @@ https://dreampuf.github.io/GraphvizOnline
 # Search All Service Accounts That Contains myname
 rbac-tool lookup -e '.*myname.*'
 
+# Lookup all accounts that DO NOT start with system: )
+rbac-tool lookup -ne '^system:.*'
+
+# List policy rules for users (or all of them)
+rbac-tool policy-rules -e '^system:anonymous'
+
 # Generate a `ClusterRole` policy that allows to read everything **except** *secrets* and *services*
 rbac-tool  gen  --deny-resources=secrets.,services. --allowed-verbs=get,list
 ```

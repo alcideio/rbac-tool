@@ -35,6 +35,7 @@ func RbacGenCmd() *cobra.Command {
 		cmd.NewCommandGenerateClusterRole(),
 		cmd.NewCommandVisualize(),
 		cmd.NewCommandLookup(),
+		cmd.NewCommandPolicyRules(),
 	}
 
 	flags := rootCmd.PersistentFlags()

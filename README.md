@@ -15,6 +15,7 @@ A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 - [The `rbac-tool viz` command](#rbac-tool-viz)
 - [The `rbac-tool lookup` command](#rbac-tool-lookup)
 - [The `rbac-tool gen` command](#rbac-tool-gen)
+- [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
 - [Command Line Reference](#command-line-reference)
 - [Contributing](#contributing)
 
@@ -113,6 +114,31 @@ rbac-tool lookup -e '^system:'
   system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kube-proxy                                                            
   system:kube-controller-manager                  | User         | ClusterRole |             | system:kube-controller-manager       
 ...
+```
+
+# `rbac-tool policy-rules`
+List Kubernetes RBAC policy rules for a given User/ServiceAccount/Group with or without [regex](https://regex101.com/)
+
+
+Examples:
+
+```shell script
+# List policy rules for system unauthenicated group
+rbac-tool policy-rules -e '^system:unauth'
+```
+
+Output:
+
+```shell script
+  TYPE  | SUBJECT                | VERBS | NAMESPACE | API GROUP | KIND | NAMES | NONRESOURCEURI                              
++-------+------------------------+-------+-----------+-----------+------+-------+--------------------------------------------+
+  Group | system:unauthenticated | get   | *         | -         | -    | -     | /healthz,/livez,/readyz,/version,/version/  
+
+```
+
+### Leveraging jmespath for further filtering and implementing who-can
+```shell script
+rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*') && (apiGroup=='core' || apiGroup=='*') && (resource=='secrets' || resource == '*')  ]].{name: name, namespace: namespace, kind: kind}"
 ```
 
 # `rbac-tool gen`
