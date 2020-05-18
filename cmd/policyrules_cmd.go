@@ -43,6 +43,9 @@ rbac-tool policy-rules -e '^system:.*'
 # Lookup all accounts that DO NOT start with system: )
 rbac-tool policy-rules -ne '^system:.*'
 
+# Leveraging jmespath for further filtering and implementing who-can
+rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*') && (apiGroup=='core' || apiGroup=='*') && (resource=='secrets' || resource == '*')  ]].{name: name, namespace: namespace, kind: kind}"
+
 `,
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
@@ -97,71 +100,28 @@ rbac-tool policy-rules -ne '^system:.*'
 				filteredPolicies = append(filteredPolicies, policy)
 			}
 
-			rows := [][]string{}
+			switch output {
+			case "table":
+				rows := [][]string{}
 
-			for _, p := range filteredPolicies {
-				name := p.Subject.Name
-				kind := p.Subject.Kind
-				for namespace, rules := range p.Rules {
-					if namespace == "" {
-						namespace = "*"
-					}
+				policies := rbac.NewSubjectPermissionsList(filteredPolicies)
 
-					for _, rule := range rules {
-						//Normalize the strings
-						rbac.ReplaceToCore(rule.APIGroups)
-						rbac.ReplaceToWildCard(rule.Resources)
-						rbac.ReplaceToWildCard(rule.ResourceNames)
-						rbac.ReplaceToWildCard(rule.Verbs)
-						rbac.ReplaceToWildCard(rule.NonResourceURLs)
-
-						sort.Strings(rule.APIGroups)
-						sort.Strings(rule.Resources)
-						sort.Strings(rule.ResourceNames)
-						sort.Strings(rule.Verbs)
-						sort.Strings(rule.NonResourceURLs)
-
-						apigroups := strings.Join(rule.APIGroups, ",")
-						if len(rule.APIGroups) == 0 {
-							apigroups = "-"
-						}
-
-						resources := strings.Join(rule.Resources, ",")
-						if len(rule.Resources) == 0 {
-							resources = "-"
-						}
-
-						resourceNames := strings.Join(rule.ResourceNames, ",")
-						if len(rule.ResourceNames) == 0 {
-							if len(rule.APIGroups) == 0 {
-								resourceNames = "-"
-							} else {
-								resourceNames = "*"
-							}
-						}
-
-						nonResourceURLs := strings.Join(rule.NonResourceURLs, ",")
-						if len(rule.NonResourceURLs) == 0 {
-							nonResourceURLs = "-"
-						}
-
+				for _, p := range policies {
+					for _, allowedTo := range p.AllowedTo {
 						row := []string{
-							kind,
-							name,
-							strings.Join(rule.Verbs, ","),
-							namespace,
-							apigroups,
-							resources,
-							resourceNames,
-							nonResourceURLs,
+							p.Kind,
+							p.Name,
+							allowedTo.Verb,
+							allowedTo.Namespace,
+							allowedTo.APIGroup,
+							allowedTo.Resource,
+							strings.Join(allowedTo.ResourceNames, ","),
+							strings.Join(allowedTo.NonResourceURLs, ","),
 						}
 						rows = append(rows, row)
 					}
 				}
-			}
 
-			switch output {
-			case "table":
 				sort.Slice(rows, func(i, j int) bool {
 					if strings.Compare(rows[i][0], rows[j][0]) == 0 {
 						return (strings.Compare(rows[i][1], rows[j][1]) < 0)
@@ -192,6 +152,7 @@ rbac-tool policy-rules -ne '^system:.*'
 
 			case "json":
 				policies := rbac.NewSubjectPermissionsList(filteredPolicies)
+
 				data, err := json.Marshal(&policies)
 				if err != nil {
 					return fmt.Errorf("Processing error - %v", err)
@@ -199,16 +160,12 @@ rbac-tool policy-rules -ne '^system:.*'
 
 				fmt.Println(string(data))
 				return nil
+
 			default:
 				return fmt.Errorf("Unsupported output format")
 			}
 		},
 	}
-
-	/**
-	jmespath
-	[? contains(@.allowedTo[].verbs[], 'get')] | [? contains(@.allowedTo[].apiGroups[], 'core')]
-	*/
 
 	flags := cmd.Flags()
 	flags.StringVar(&clusterContext, "cluster-context", "", "Cluster Context .use 'kubectl config get-contexts' to list available contexts")
