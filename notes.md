@@ -30,6 +30,9 @@ rbac-tool lookup -ne '^system:.*'
 # List policy rules for users (or all of them)
 rbac-tool policy-rules -e '^system:anonymous'
 
+# Generate from Audit events & Visualize 
+rbac-tool auditgen -f testdata  | rbac-tool viz   -f -
+
 # Generate a `ClusterRole` policy that allows to read everything **except** *secrets* and *services*
 rbac-tool  gen  --deny-resources=secrets.,services. --allowed-verbs=get,list
 ```

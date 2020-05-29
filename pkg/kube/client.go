@@ -2,6 +2,8 @@ package kube
 
 import (
 	"github.com/rs/zerolog/log"
+	"strings"
+
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,15 +12,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/version"
 	clientset "k8s.io/client-go/kubernetes"
-
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure" // auth for AKS clusters
 	_ "k8s.io/client-go/plugin/pkg/client/auth/exec"  // auth for OIDC
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"   // auth for GKE clusters
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"  // auth for OIDC
-
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"strings"
 )
 
 type KubeClient struct {
