@@ -7,30 +7,6 @@
 
 <img src="rbac-tool.png" alt="rbac-tool" width="120"/>
 
-# rbac-tool
-
-A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
-
-- [Install](#install)
-- [The `rbac-tool viz` command](#rbac-tool-viz)
-- [The `rbac-tool lookup` command](#rbac-tool-lookup)
-- [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
-- [The `rbac-tool gen` command](#rbac-tool-gen)
-- [Command Line Reference](#command-line-reference)
-- [Contributing](#contributing)
-
-## Install
-
-Download the latest from the [release](https://github.com/alcideio/rbac-tool/releases) page
-
-Build from Source (*go 1.13*):
-
-```shell script
-go get -u github.com/alcideio/rbac-tool
-cd $(GOPATH)/src/github.com/alcideio/rbac-tool
-make get-deps build
-```
-
 ## Kubernetes RBAC
 
 Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
@@ -48,7 +24,46 @@ ClusterRoles have several uses. You can use a ClusterRole to:
 
 If you want to define a role within a namespace, use a Role; if you want to define a role cluster-wide, use a ClusterRole.
 
-**rbac-tool** simplifies the creation process of RBAC policies and avoiding those wildcards `*` and it adapts to specific Kubernets API server
+**rbac-tool** simplifies querying and creation RBAC policies.
+
+## Install
+
+Download the latest from the [release](https://github.com/alcideio/rbac-tool/releases) page
+
+```shell script
+curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
+```
+
+# rbac-tool
+
+A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
+
+```shell script
+Usage:
+  rbac-tool [command]
+
+Available Commands:
+  auditgen        Generate from Kubernetes audit events, RBAC policy
+  bash-completion Generate bash completion. source < (advisor bash-completion)
+  generate        Generate Role or ClusterRole and reduce the use of wildcards
+  help            Help about any command
+  lookup          RBAC Lookup by subject (user/group/serviceaccount) name
+  policy-rules    RBAC List Policy Rules For subject (user/group/serviceaccount) name
+  version         Print rbac-tool version
+  visualize       A RBAC visualizer
+
+Flags:
+  -h, --help      help for rbac-tool
+  -v, --v Level   number for the log level verbosity
+```
+
+- [The `rbac-tool viz` command](#rbac-tool-viz)
+- [The `rbac-tool lookup` command](#rbac-tool-lookup)
+- [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
+- [The `rbac-tool auditgen` command](#rbac-tool-auditgen)
+- [The `rbac-tool gen` command](#rbac-tool-gen)
+- [Command Line Reference](#command-line-reference)
+- [Contributing](#contributing)
 
 
 # `rbac-tool viz`
@@ -69,7 +84,6 @@ rbac-tool viz --outformat dot && cat rbac.dot | dot -Tpng > rbac.png  && open rb
 # Render Online
 https://dreampuf.github.io/GraphvizOnline
 ```
-
 
 Examples:
 
@@ -136,10 +150,29 @@ Output:
 
 ```
 
-### Leveraging jmespath for further filtering and implementing who-can
+> Leveraging JMESPath to filter and transform RBAC Policy rules.
+>
+>  For example: *Who Can Read Secrets*
+>```shell script
+> rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*') && (apiGroup=='core' || apiGroup=='*') && (resource=='secrets' || resource == '*')  ]].{name: name, namespace: namespace, kind: kind}"
+>```
+>
+> See [https://jmespath.org/](https://jmespath.org/)
+>
+
+# `rbac-tool auditgen`
+
+Generate RBAC policy from Kubernetes audit events.
+Audit source format can be:
+- Kubernetes List Object that contains Audit Events
+- Newline seperated Audit Event objects
+Audit source can be file, directory or http URL.
+
 ```shell script
-rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*') && (apiGroup=='core' || apiGroup=='*') && (resource=='secrets' || resource == '*')  ]].{name: name, namespace: namespace, kind: kind}"
+rbac-tool auditgen -f audit.log
 ```
+
+> This command is based on [this](https://github.com/liggitt/audit2rbac) prior work.
 
 # `rbac-tool gen`
 
@@ -150,11 +183,10 @@ Examples would be simplest way to describe how `rbac-tool gen` can help:
 
 `rbac-tool` generate RBAC `Role` or RBAC `ClusterRole` resource while reducing the use of wildcards, and support **deny** semantics for specific Kubernetes clusters.
 
-### How `rbac-tool` works?
+### How `rbac-tool gen` works?
 
-`rbac-tool` reads from the Kubernetes discovery API the available API Groups and resources, 
-and based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards.
-
+`rbac-tool` reads from the Kubernetes discovery API the available API Groups and resources, which represents the "world" of resources.
+Based on the command line options, generate an explicit Role/ClusterRole that avoid wildcards by expanding wildcards to the available "world" resources.
 
 ###  Command Line Examples
 

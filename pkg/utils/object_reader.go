@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,20 +15,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/klog"
 )
-
-func LoadYamlManifest(filename string) ([]runtime.Object, error) {
-	if filename != "-" {
-		f, err := os.Open(filename)
-		if err != nil {
-			return nil, err
-		}
-		defer f.Close()
-
-		return ReadYamlManifest(f)
-	}
-
-	return ReadYamlManifest(os.Stdin)
-}
 
 func ReadYamlManifest(r io.Reader) ([]runtime.Object, error) {
 	decoded := []runtime.Object{}
@@ -38,31 +25,28 @@ func ReadYamlManifest(r io.Reader) ([]runtime.Object, error) {
 		return nil, err
 	}
 
+	//klog.V(6).Infof("ReadAll '%v'", string(buf))
+
 	bufSlice := bytes.Split(buf, []byte("\n---"))
 	decoder := scheme.Codecs.UniversalDeserializer()
 
 	for _, b := range bufSlice {
 		obj, _, err := decoder.Decode(b, nil, nil)
-		if err == nil && obj != nil {
-			decoded = append(decoded, obj)
+
+		if err != nil {
+			klog.V(6).Infof("failed to decode - %v - '%v'", err, string(b))
+			continue
 		}
+
+		if obj == nil {
+			klog.V(6).Infof("failed to decode - %v", string(b))
+			continue
+		}
+
+		decoded = append(decoded, obj)
 	}
 
 	return decoded, nil
-}
-
-func ReadObjectListFromFile(filename string) ([]runtime.Object, error) {
-	if filename != "-" {
-		f, err := os.Open(filename)
-		if err != nil {
-			return nil, err
-		}
-		defer f.Close()
-
-		return ReadObjectList(f)
-	}
-
-	return ReadObjectList(os.Stdin)
 }
 
 func ReadObjectList(r io.Reader) ([]runtime.Object, error) {
@@ -97,12 +81,26 @@ func ReadObjectList(r io.Reader) ([]runtime.Object, error) {
 func ReadObjectsFromFile(filename string) ([]runtime.Object, error) {
 	objs := []runtime.Object{}
 
-	if l, err := ReadObjectListFromFile(filename); err == nil {
+	var tee io.Reader
+	var buf bytes.Buffer
+
+	if filename != "-" {
+		f, err := os.Open(filename)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		tee = io.TeeReader(f, &buf)
+	} else {
+		tee = io.TeeReader(os.Stdin, &buf)
+	}
+
+	if l, err := ReadObjectList(tee); err == nil {
 		klog.V(6).Infof("Loaded from Object List %v resources", filename, len(l))
 		objs = l
 	} else {
 		klog.V(6).Infof("Couldn't read Object List (%v) from %v ... trying to load as YAML", err, filename)
-		if l, err := LoadYamlManifest(filename); err == nil {
+		if l, err := ReadYamlManifest(strings.NewReader(buf.String())); err == nil {
 			klog.V(6).Infof("Loaded from YAML %v resources %v", filename, len(l))
 			objs = l
 		} else {
