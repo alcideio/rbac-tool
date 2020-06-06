@@ -2,8 +2,9 @@ package visualize
 
 import (
 	"fmt"
-	"github.com/emicklei/dot"
 	"html"
+
+	"github.com/emicklei/dot"
 )
 
 const (
@@ -11,25 +12,30 @@ const (
 
 	redOutline = "#e33a1f"
 
-	serviceAccountColor   = "#1b60db"
-	serviceAccountOutline = "#01040a"
-	serviceAccountText    = "white"
+	serviceAccountColor   = "#2f6de1"
+	serviceAccountOutline = "black"
+	serviceAccountText    = "#f0f0f0"
+	serviceAccountShape   = "box"
 
-	roleColor        = "#17b87e"
-	roleColorOutline = "#01080a"
-	roleColorText    = "white"
+	roleColor        = "#ff9900"
+	roleColorOutline = "black"
+	roleColorText    = "#030303"
+	roleShape        = "octagon"
 
-	roleBindingColor        = "#17b87e"
-	roleBindingColorOutline = "#01080a"
-	roleBindingColorText    = "white"
+	roleBindingColor        = "#ff9900"
+	roleBindingColorOutline = "black"
+	roleBindingColorText    = "#030303"
+	roleBindingShape        = "octagon"
 
-	clusterRoleColor        = "#747474"
-	clusterRoleColorOutline = "#01080a"
-	clusterRoleColorText    = "#f4f4f4"
+	clusterRoleColor        = "#ffcc00"
+	clusterRoleColorOutline = "black"
+	clusterRoleColorText    = "#030303"
+	clusterRoleShape        = "doubleoctagon"
 
-	clusterRoleBindingColor        = "#747474"
-	clusterRoleBindingColorOutline = "#01080a"
-	clusterRoleBindingColorText    = "#f4f4f4"
+	clusterRoleBindingColor        = "#ffcc00"
+	clusterRoleBindingColorOutline = "black"
+	clusterRoleBindingColorText    = "#030303"
+	clusterRoleBindingShape        = "doubleoctagon"
 )
 
 func newGraph() *dot.Graph {
@@ -69,7 +75,7 @@ func newSubjectNode0(g *dot.Graph, kind, name string, exists, highlight bool) do
 func newRoleBindingNode(g *dot.Graph, name string, highlight bool) dot.Node {
 	return g.Node("rb-"+name).
 		Attr("label", formatLabel(name, highlight)).
-		Attr("shape", "oval").
+		Attr("shape", roleBindingShape).
 		Attr("style", "filled").
 		Attr("penwidth", iff(highlight, "2.0", "1.0")).
 		Attr("fillcolor", roleBindingColor).
@@ -81,7 +87,7 @@ func newRoleBindingNode(g *dot.Graph, name string, highlight bool) dot.Node {
 func newRoleNode(g *dot.Graph, namespace, name string, exists, highlight bool) dot.Node {
 	node := g.Node("r-"+namespace+"/"+name).
 		Attr("label", formatLabel(name, highlight)).
-		Attr("shape", "oval").
+		Attr("shape", roleShape).
 		Attr("style", iff(exists, "filled", "dotted")).
 		Attr("color", iff(exists, roleColorOutline, redOutline)).
 		Attr("penwidth", iff(highlight || !exists, "2.0", "1.0")).
@@ -95,7 +101,7 @@ func newRoleNode(g *dot.Graph, namespace, name string, exists, highlight bool) d
 func newClusterRoleBindingNode(g *dot.Graph, name string, highlight bool) dot.Node {
 	return g.Node("crb-"+name).
 		Attr("label", formatLabel(name, highlight)).
-		Attr("shape", "oval").
+		Attr("shape", roleBindingShape).
 		Attr("style", "filled").
 		Attr("penwidth", iff(highlight, "2.0", "1.0")).
 		Attr("fillcolor", clusterRoleBindingColor).
@@ -107,7 +113,7 @@ func newClusterRoleBindingNode(g *dot.Graph, name string, highlight bool) dot.No
 func newClusterRoleNode(g *dot.Graph, bindingNamespace, roleName string, exists, highlight bool) dot.Node {
 	node := g.Node("cr-"+bindingNamespace+"/"+roleName).
 		Attr("label", formatLabel(roleName, highlight)).
-		Attr("shape", "oval").
+		Attr("shape", clusterRoleShape).
 		Attr("style", iff(exists, iff(bindingNamespace == "", "filled", "filled,dashed"), "dotted")).
 		Attr("color", iff(exists, clusterRoleColorOutline, redOutline)).
 		Attr("penwidth", iff(highlight || !exists, "2.0", "1.0")).
