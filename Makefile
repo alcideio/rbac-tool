@@ -72,7 +72,7 @@ get-release-bins: ##@build Download goreleaser
 
 .PHONY: build
 build: ##@build Build on local platform
-	export CGO_ENABLED=0 && go build -o $(BINDIR)/$(BINNAME) -tags staticbinary -i -v -ldflags '$(LDFLAGS)'  github.com/alcideio/rbac-tool
+	export CGO_ENABLED=0 && go build -o $(BINDIR)/$(BINNAME) -tags staticbinary -v -ldflags '$(LDFLAGS)'  github.com/alcideio/rbac-tool
 
 
 #
