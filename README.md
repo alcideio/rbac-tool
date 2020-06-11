@@ -321,4 +321,7 @@ If you have an idea to enhance rbac-tool follow the steps below.
 - Your PR is more likely to be accepted if it focuses on just one change.
 - Please include a comment with the results before and after your change. 
 - Your PR is more likely to be accepted if it includes tests. 
-- You're welcome to submit a draft PR if you would like early feedback on an idea or an approach. 
+- You're welcome to submit a draft PR if you would like early feedback on an idea or an approach.
+
+
+[![Stargazers over time](https://starchart.cc/alcideio/rbac-tool.svg)](https://starchart.cc/alcideio/rbac-tool)
