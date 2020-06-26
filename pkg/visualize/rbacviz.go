@@ -124,29 +124,33 @@ func (r *RbacViz) initialize(opts *Opts) error {
 }
 
 func (r *RbacViz) isBindingUsed(binding rbacv1.RoleBinding) bool {
+	klog.V(5).Infof(">>> [process][ClusterRole/Role Binding %v/%v]", binding.Namespace, binding.Name)
 	for _, subject := range binding.Subjects {
 
 		if !utils.IsNamespaceIncluded(subject.Namespace, r.includedNamespace, r.excludedNamespace) {
-			klog.V(5).Infof(">>> [skip][ClusterRole/Role Binding %v/%v] ServiceAccount %v/%v - not in namespace inclusion list", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
+			klog.V(5).Infof("\t\t>>> [skip][ClusterRole/Role Binding %v/%v] ServiceAccount %v/%v - not in namespace inclusion list", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
 			continue
 		}
 
 		if !r.includeSubjectsRegex.MatchString(subject.Name) {
+			klog.V(5).Infof("\t\t>>> [skip][Subject] ServiceAccount %v/%v - Subject '%v' does NOT match the regexp '%v'", binding.Namespace, binding.Name, subject.Name, r.includeSubjectsRegex.String())
 			continue
 		}
 
 		if !r.opts.ShowPodsOnly {
+			klog.V(5).Infof("\t\t>> [used][ClusterRole/Role Binding %v/%v] - used by %v/%v", binding.Namespace, binding.Name, binding.Namespace, subject.Name)
 			return true
 		}
 
 		if r.permissions.ServiceAccountsUsed.Has(fmt.Sprintf("%s/%s", subject.Namespace, subject.Name)) {
-			klog.V(5).Infof(">> [used][ClusterRole/Role Binding %v/%v] - used by %v/%v", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
+			klog.V(5).Infof("\t\t>> [used][ClusterRole/Role Binding %v/%v] - used by %v/%v", binding.Namespace, binding.Name, subject.Namespace, subject.Name)
 			return true
 		}
 
-		klog.V(5).Infof(">>> [skip][ServiceAccount %v/%v] not used", subject.Namespace, subject.Name)
+		klog.V(5).Infof("\t\t>>> [skip][ServiceAccount %v/%v] not used", subject.Namespace, subject.Name)
 	}
 
+	klog.V(5).Infof("<<< [skip][ClusterRole/Role Binding %v/%v]", binding.Namespace, binding.Name)
 	return false
 }
 
@@ -167,7 +171,7 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 	for _, bindings := range r.permissions.RoleBindings {
 		for _, binding := range bindings {
 
-			//Check that this a namespace we would like to visualize
+			// Check that this a namespace we would like to visualize
 			// Binding with "" namespace are clusterrole bindings
 			if binding.Namespace != "" && !utils.IsNamespaceIncluded(binding.Namespace, r.includedNamespace, r.excludedNamespace) {
 				klog.V(5).Infof("Skiping %v/%v - namespace '%s' not included", binding.Namespace, binding.Name, binding.Namespace)
@@ -193,11 +197,11 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 			saNodes := []dot.Node{}
 			for _, subject := range binding.Subjects {
 				if !r.includeSubjectsRegex.MatchString(subject.Name) {
-					klog.V(5).Infof("skipping subject %v/%v listed in binding %v/%v", binding.Namespace, subject, binding.Namespace, binding.Name)
+					klog.V(5).Infof("\t\t>>> [skip][Subject] ServiceAccount %v/%v - Subject '%v' does NOT match the regexp '%v'", binding.Namespace, binding.Name, subject.Name, r.includeSubjectsRegex.String())
 					continue
 				}
-				gns := newNamespaceSubgraph(g, subject.Namespace)
-				subjectNode := r.newSubjectNode(gns, subject.Kind, subject.Namespace, subject.Name)
+				gns := newNamespaceSubgraph(g, binding.Namespace)
+				subjectNode := r.newSubjectNode(gns, subject.Kind, binding.Namespace, subject.Name)
 				saNodes = append(saNodes, subjectNode)
 			}
 
@@ -291,14 +295,20 @@ func (r *RbacViz) newSubjectNode(gns *dot.Graph, kind string, ns string, name st
 
 func (r *RbacViz) subjectExists(kind string, ns string, name string) bool {
 	if strings.ToLower(kind) != strings.ToLower("ServiceAccount") {
+		klog.V(5).Infof("[Subject Exist] %v/%v (%v) exist", ns, name, kind)
 		return true // assume users and groups exist
 	}
 
 	if sas, nsExists := r.permissions.ServiceAccounts[ns]; nsExists {
 		if _, saExists := sas[name]; saExists {
 			return true
+		} else {
+			klog.V(5).Infof("[Subject Does Not Exist] %v/%v (%v) exist - Couldn't find service account in Namespace %v", ns, name, kind, ns)
 		}
+	} else {
+		klog.V(5).Infof("[Subject Does Not Exist] %v/%v (%v) exist - Couldn't find namespace '%v' with service accounts", ns, name, kind, ns)
 	}
+
 	return false
 }
 

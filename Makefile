@@ -75,6 +75,12 @@ build: ##@build Build on local platform
 	export CGO_ENABLED=0 && go build -o $(BINDIR)/$(BINNAME) -tags staticbinary -v -ldflags '$(LDFLAGS)'  github.com/alcideio/rbac-tool
 
 
+create-kind-cluster:  ##@Test creatte KIND cluster
+	kind create cluster --image kindest/node:v1.18.2 --name rbak
+
+delete-kind-cluster:  ##@Test delete KIND cluster
+	kind delete cluster --name rbak
+
 #
 #  How to release:
 #

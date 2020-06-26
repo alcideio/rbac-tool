@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mynamespace
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: example-user
+  namespace: mynamespace
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: mynamespace
+  name: example-role-1
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "watch", "list"]
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: mynamespace
+  name: example-role-2
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "watch", "list"]
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: example-rolebinding-1
+  namespace: mynamespace
+subjects:
+  - kind: ServiceAccount
+    name: example-user
+roleRef:
+  kind: Role
+  name: example-role-1
+  apiGroup: rbac.authorization.k8s.io
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: example-rolebinding-2
+  namespace: mynamespace
+subjects:
+  - kind: ServiceAccount
+    name: example-user
+roleRef:
+  kind: Role
+  name: example-role-2
+  apiGroup: rbac.authorization.k8s.io
