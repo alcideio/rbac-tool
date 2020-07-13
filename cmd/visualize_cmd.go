@@ -49,6 +49,10 @@ rbac-tool viz --include-pods-only
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
 
+			if opts.Outfile == "rbac.html" && opts.Outformat == "dot" {
+				opts.Outfile = "rbac.dot"
+			}
+
 			if err := opts.Validate(); err != nil {
 				return err
 			}
