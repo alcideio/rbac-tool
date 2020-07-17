@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
+	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -224,6 +225,16 @@ func (kubeClient *KubeClient) ListClusterRoles() ([]rbacv1.ClusterRole, error) {
 
 func (kubeClient *KubeClient) ListClusterRoleBindings() ([]rbacv1.ClusterRoleBinding, error) {
 	objs, err := kubeClient.Client.RbacV1().ClusterRoleBindings().List(metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPolicy, error) {
+	objs, err := kubeClient.Client.PolicyV1beta1().PodSecurityPolicies().List(metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err

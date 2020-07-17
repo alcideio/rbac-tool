@@ -8,6 +8,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/emicklei/dot v0.10.2
 	github.com/fatih/color v1.7.0
+	github.com/fatih/structs v1.1.0
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/mitchellh/copystructure v1.0.0 // indirect

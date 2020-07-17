@@ -3,9 +3,11 @@ package rbac
 import (
 	"github.com/alcideio/rbac-tool/pkg/kube"
 	v1 "k8s.io/api/core/v1"
+	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
+	"strings"
 )
 
 type Permissions struct {
@@ -16,6 +18,16 @@ type Permissions struct {
 	// - ClusterRoleBindings are stored in RoleBindings[""]
 	Roles        map[string]map[string]rbacv1.Role
 	RoleBindings map[string]map[string]rbacv1.RoleBinding
+
+	PodSecurityPolicies map[string]policy.PodSecurityPolicy
+}
+
+func (p *Permissions) populatePodSecurityPolicies(psps []policy.PodSecurityPolicy) {
+	for _, psp := range psps {
+		p.PodSecurityPolicies[strings.ToLower(psp.Name)] = psp
+
+		klog.V(6).Infof("PodSecurityPolicy %v", strings.ToLower(psp.Name))
+	}
 }
 
 func (p *Permissions) populateServiceAccounts(sas []v1.ServiceAccount) {
@@ -93,6 +105,14 @@ func NewPermissionsFromCluster(client *kube.KubeClient) (*Permissions, error) {
 	permissions.ServiceAccounts = make(map[string]map[string]v1.ServiceAccount)
 	permissions.Roles = make(map[string]map[string]rbacv1.Role)
 	permissions.RoleBindings = make(map[string]map[string]rbacv1.RoleBinding)
+	permissions.PodSecurityPolicies = make(map[string]policy.PodSecurityPolicy)
+
+	psps, err := client.ListPodSecurityPolicies()
+	if err != nil {
+		return nil, err
+	}
+
+	permissions.populatePodSecurityPolicies(psps)
 
 	sas, err := client.ListServiceAccounts(v1.NamespaceAll)
 	if err != nil {
@@ -134,12 +154,14 @@ func NewPermissionsFromResourceList(objs []runtime.Object) (*Permissions, error)
 	permissions.ServiceAccounts = make(map[string]map[string]v1.ServiceAccount)
 	permissions.Roles = make(map[string]map[string]rbacv1.Role)
 	permissions.RoleBindings = make(map[string]map[string]rbacv1.RoleBinding)
+	permissions.PodSecurityPolicies = make(map[string]policy.PodSecurityPolicy)
 
 	sas := []v1.ServiceAccount{}
 	roles := []rbacv1.Role{}
 	clusterRoles := []rbacv1.ClusterRole{}
 	bindings := []rbacv1.RoleBinding{}
 	clusterBindings := []rbacv1.ClusterRoleBinding{}
+	psps := []policy.PodSecurityPolicy{}
 
 	for _, obj := range objs {
 
@@ -154,6 +176,8 @@ func NewPermissionsFromResourceList(objs []runtime.Object) (*Permissions, error)
 			bindings = append(bindings, *o)
 		case *rbacv1.ClusterRoleBinding:
 			clusterBindings = append(clusterBindings, *o)
+		case *policy.PodSecurityPolicy:
+			psps = append(psps, *o)
 
 		default:
 			klog.V(6).Infof("Skipping type %v", obj.GetObjectKind().GroupVersionKind().String())
@@ -165,6 +189,7 @@ func NewPermissionsFromResourceList(objs []runtime.Object) (*Permissions, error)
 	permissions.populateClusterRoles(clusterRoles)
 	permissions.populateRoleBindings(bindings)
 	permissions.populateClusterRoleBindings(clusterBindings)
+	permissions.populatePodSecurityPolicies(psps)
 
 	return permissions, nil
 }

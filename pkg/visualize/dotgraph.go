@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/emicklei/dot"
 	"html"
+	"strings"
 )
 
 const (
@@ -30,6 +31,10 @@ const (
 	clusterRoleBindingColor        = "#747474"
 	clusterRoleBindingColorOutline = "#01080a"
 	clusterRoleBindingColorText    = "#f4f4f4"
+
+	pspColor        = "#ffbf00"
+	pspColorOutline = "#01080a"
+	pspColorText    = "black"
 )
 
 func newGraph() *dot.Graph {
@@ -120,6 +125,33 @@ func newClusterRoleNode(g *dot.Graph, bindingNamespace, roleName string, exists,
 
 func newRulesNode0(g *dot.Graph, namespace, roleName, rulesHTML string, highlight bool) dot.Node {
 	return g.Node("rules-"+namespace+"/"+roleName).
+		Attr("label", dot.HTML(rulesHTML)).
+		Attr("shape", "note").
+		Attr("fillcolor", "#DCDCDC").
+		Attr("penwidth", iff(highlight, "2.0", "1.0")).
+		Attr("fontsize", "10")
+}
+
+func pspNodeId(pspName string) string {
+	return "psp-" + strings.ToLower(pspName)
+}
+
+func newPSPNode(g *dot.Graph, bindingNamespace, pspName string, exists, highlight bool) dot.Node {
+	node := g.Node(pspNodeId(pspName)).
+		Attr("label", formatLabel(pspName, highlight)).
+		Attr("shape", "note").
+		Attr("style", iff(exists, iff(bindingNamespace == "", "filled", "filled,dashed"), "dotted")).
+		Attr("color", iff(exists, pspColorOutline, redOutline)).
+		Attr("penwidth", iff(highlight || !exists, "2.0", "1.0")).
+		Attr("fillcolor", pspColor).
+		Attr("fontcolor", iff(exists, pspColorText, "#030303")).
+		Attr("fontname", fontName)
+	g.Root().AddToSameRank("PSPs", node)
+	return node
+}
+
+func newPSPRulesNode(g *dot.Graph, pspName, rulesHTML string, highlight bool) dot.Node {
+	return g.Node("psp-rules-"+pspName).
 		Attr("label", dot.HTML(rulesHTML)).
 		Attr("shape", "note").
 		Attr("fillcolor", "#DCDCDC").
