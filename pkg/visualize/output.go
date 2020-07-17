@@ -45,7 +45,7 @@ type HtmlReport struct {
 func (r *HtmlReport) generateHeader() string {
 
 	data := `
-		<nav class="navbar navbar-expand-lg navbar-dark bg-info mb-4">
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
 			<div class="row">
 				<div class="col-6 collapse-brand">
 					<a href="javascript:void(0)">
@@ -135,8 +135,8 @@ func (r *HtmlReport) generateFooter() string {
 					<div class="col-md-4 text-center p10">
 						<div>
  							<span>
-								<a href="javascript:void(0)"><img src="https://raw.githubusercontent.com/alcideio/rbac-tool/master/rbac-tool.png" height="48"></a>
-								<p style="font-weight: 100; font-style: normal; font-size: 18px;">Brought to You by <a target="_blank" href="https://www.alcide.io">Alcide's</a> Kubernetes Obsession</p>
+								<a href="javascript:void(0)"><img src="https://raw.githubusercontent.com/alcideio/rbac-tool/master/rbac-tool.png" height="96"></a>
+								<p class="mt-4" style="font-weight: 100; font-style: normal; font-size: 18px;">Brought to You by <a target="_blank" href="https://www.alcide.io">Alcide's</a> Kubernetes Obsession</p>
 							</span>
 						</div>
 					</div>
