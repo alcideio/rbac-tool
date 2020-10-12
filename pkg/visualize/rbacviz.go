@@ -211,8 +211,8 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 					klog.V(5).Infof("\t\t>>> [skip][Subject] ServiceAccount %v/%v - Subject '%v' does NOT match the regexp '%v'", binding.Namespace, binding.Name, subject.Name, r.includeSubjectsRegex.String())
 					continue
 				}
-				gns := newNamespaceSubgraph(g, binding.Namespace)
-				subjectNode := r.newSubjectNode(gns, subject.Kind, binding.Namespace, subject.Name)
+				gns := newNamespaceSubgraph(g, subject.Namespace)
+				subjectNode := r.newSubjectNode(gns, subject.Kind, subject.Namespace, subject.Name)
 				saNodes = append(saNodes, subjectNode)
 			}
 
@@ -280,7 +280,7 @@ func (r *RbacViz) newBindingNode(gns *dot.Graph, binding rbacv1.RoleBinding) dot
 	}
 }
 
-func (r *RbacViz) newRoleAndRulesNodePair(gns *dot.Graph, bindingNamespace string, roleRef rbacv1.RoleRef) (dot.Node, dot.Node) {
+func (r *RbacViz) newRoleAndRulesNodePair(gns *dot.Graph, bindingNamespace string, roleRef rbacv1.RoleRef) (dot.Node, *dot.Node) {
 	var roleNode dot.Node
 	var rulesNode *dot.Node
 	var roleNamespace string
@@ -299,7 +299,7 @@ func (r *RbacViz) newRoleAndRulesNodePair(gns *dot.Graph, bindingNamespace strin
 			newRoleToRulesEdge(roleNode, *rulesNode)
 		}
 	}
-	return roleNode, *rulesNode
+	return roleNode, rulesNode
 }
 
 func (r *RbacViz) roleExists(roleNamespace string, roleName string) bool {
@@ -471,8 +471,12 @@ func (r *RbacViz) newPSPandRulesNodePair(g *dot.Graph, pspName string, highlight
 	return &pspNode
 }
 
-func (r *RbacViz) connectPSPNodesIfNeeded(g *dot.Graph, binding rbacv1.RoleBinding, rulesNode dot.Node) {
+func (r *RbacViz) connectPSPNodesIfNeeded(g *dot.Graph, binding rbacv1.RoleBinding, rulesNode *dot.Node) {
 	var roleNamespace string
+
+	if rulesNode == nil {
+		return
+	}
 
 	if binding.RoleRef.Kind == "ClusterRole" {
 		roleNamespace = ""
@@ -492,11 +496,11 @@ func (r *RbacViz) connectPSPNodesIfNeeded(g *dot.Graph, binding rbacv1.RoleBindi
 						if psp == "*" {
 							for pspName, _ := range r.permissions.PodSecurityPolicies {
 								klog.V(5).Infof("\t\t>>> [add][PSP] %v/%v -> %v", binding.Namespace, binding.RoleRef.Name, pspName)
-								edge(rulesNode, g.Node(pspNodeId(pspName)))
+								edge(*rulesNode, g.Node(pspNodeId(pspName)))
 							}
 						} else {
 							klog.V(5).Infof("\t\t>>> [add][PSP] %v/%v -> %v", binding.Namespace, binding.RoleRef.Name, psp)
-							edge(rulesNode, g.Node(pspNodeId(psp)))
+							edge(*rulesNode, g.Node(pspNodeId(psp)))
 						}
 					}
 				}

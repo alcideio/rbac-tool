@@ -49,6 +49,7 @@ func openStreams(sources []string) ([]io.ReadCloser, []error) {
 
 	klog.V(5).Infof("opening readStreams(s) - %v", sources)
 
+	//FIXME
 	client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	for _, source := range sources {
 		if strings.HasPrefix(source, "http://") || strings.HasPrefix(source, "https://") {
