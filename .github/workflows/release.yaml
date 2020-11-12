@@ -21,6 +21,8 @@ jobs:
       - name: Build & Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALCIDE_DOCKER_HUB_TOKEN: ${{ secrets.ALCIDE_DOCKER_HUB_TOKEN }}
         run: |
+          docker login --username alcide --password=$ALCIDE_DOCKER_HUB_TOKEN
           make get-bins
           make gorelease

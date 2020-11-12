@@ -61,6 +61,50 @@ archives:
     name_template: '{{ .ProjectName }}_v{{ .Major }}.{{ .Minor }}.{{ .Patch }}_{{ .Os }}_{{ .Arch }}'
     format: binary
 
+dockers:
+  - image_templates:
+      #- 'alcideio/skan:{{ .Tag }}'
+      - 'alcide/rbac-tool:v{{ .Major }}.{{ .Minor }}.{{ .Patch }}'
+      - 'alcide/rbac-tool:latest'
+    dockerfile: Dockerfile
+    binaries:
+      - rbac-tool
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=repository=https://github.com/alcideio/rbac-tool"
+      - "--label=homepage=https://github.com/alcideio/rbac-tool"
+      - "--label=maintainer=Alcide <rbac-tool@alcide.io>"
+    #      - "--label=org.opencontainers.image.source={{.GitURL}}"
+    #      - "--label=com.github.actions.name={{.ProjectName}}"
+    #      - "--label=com.github.actions.description=Deliver Go binaries as fast and easily as possible"
+    #      - "--label=com.github.actions.icon=terminal"
+    #      - "--label=com.github.actions.color=blue"
+    # Skips the docker push. Could be useful if you also do draft releases.
+    # If set to auto, the release will not be pushed to the docker repository
+    # in case there is an indicator for prerelease in the tag e.g. v1.0.0-rc1
+    # Defaults to false.
+    skip_push: false
+  - image_templates:
+      - 'alcide/rbac-tool:v{{ .Major }}.{{ .Minor }}.{{ .Patch }}-debug'
+      - 'alcide/rbac-tool:debug'
+    dockerfile: debug.dockerfile
+    binaries:
+      - rbac-tool
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=repository=https://github.com/alcideio/rbac-tool"
+      - "--label=homepage=https://github.com/alcideio/rbac-tool"
+      - "--label=maintainer=Alcide <rbac-tool@alcide.io>"
+    skip_push: false
+
 release:
   # Repo in which the release will be created.
   # Default is extracted from the origin remote URL.
@@ -87,14 +131,3 @@ release:
   # GitHub.
   # Defaults to false.
   #disable: true
-
-  # You can add extra pre-existing files to the release.
-  # The filename on the release will be the last part of the path (base). If
-  # another file with the same name exists, the latest one found will be used.
-  # Defaults to empty.
-#  extra_files:
-#    - glob: ./path/to/file.txt
-#    - glob: ./glob/**/to/**/file/**/*
-#    - glob: ./glob/foo/to/bar/file/foobar/override_from_previous
-
-
