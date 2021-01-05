@@ -98,7 +98,7 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 
 	flags := cmd.Flags()
 
-	flags.StringVarP(&generateKind, "generated-type", "t", "ClusterRole", "Role or ClusteRole")
+	flags.StringVarP(&generateKind, "generated-type", "t", "ClusterRole", "Role or ClusterRole")
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
 	//flags.StringSliceVarP(&expandGroups, "expand-groups", "g", []string{""},  "Comma separated list of API groups we would like to list all resource kinds rather than using wild cards '*'")
 	flags.StringSliceVar(&allowedGroups, "allowed-groups", []string{"*"}, "Comma separated list of API groups we would like to allow '*'")
