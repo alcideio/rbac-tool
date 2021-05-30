@@ -31,10 +31,12 @@ builds:
     goarch:
       #- 386
       - amd64
-      #- arm
-      #- arm64
+      - arm
+      - arm64
     ignore:
       - goos: darwin
+        goarch: 386
+      - goos: linux
         goarch: 386
     hooks:
       post: /bin/bash hack/goreleaser-postbuild.sh
