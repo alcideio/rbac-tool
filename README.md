@@ -44,7 +44,7 @@ Usage:
 
 Available Commands:
   auditgen        Generate from Kubernetes audit events, RBAC policy
-  bash-completion Generate bash completion. source < (advisor bash-completion)
+  bash-completion Generate bash completion. source < (rbac-tool bash-completion)
   generate        Generate Role or ClusterRole and reduce the use of wildcards
   help            Help about any command
   lookup          RBAC Lookup by subject (user/group/serviceaccount) name
