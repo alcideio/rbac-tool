@@ -1,7 +1,7 @@
 package kube
 
 import (
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
@@ -19,6 +19,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"  // auth for OIDC
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog"
 )
 
 type KubeClient struct {
@@ -57,14 +58,14 @@ func NewClient(context string) (*KubeClient, error) {
 
 	preferedResource, err := client.Discovery().ServerPreferredResources()
 	if err != nil {
-		log.Debug().Msgf("ServerPreferredResources completed with errors %v (%v)", err, len(preferedResource))
+		klog.V(3).Infof("ServerPreferredResources completed with errors %v (%v)", err, len(preferedResource))
 	}
 
 	if preferedResource == nil {
 		preferedResource = []*metav1.APIResourceList{}
 	}
 
-	//log.Debug().Msgf("%v\n", pretty.Sprint(preferedResource))
+	//klog.V(8).Infof("%v\n", pretty.Sprint(preferedResource))
 
 	k8sVer, err := client.Discovery().ServerVersion()
 	if err != nil {
@@ -241,4 +242,55 @@ func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPol
 	}
 
 	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource string) (schema.GroupResource, error) {
+	gr := schema.ParseGroupResource(groupresource)
+
+	klog.V(8).Infof("resolving %v", gr.String())
+
+	for _, apiResourceList := range kubeClient.ServerPreferredResources {
+		// rbac rules only look at API group names, not name & version
+		gv, err := schema.ParseGroupVersion(apiResourceList.GroupVersion)
+		if err != nil {
+			klog.V(8).Infof("failed to parse %v - %v", apiResourceList.GroupVersion, err)
+			continue
+		}
+
+		if gr.Group != "" && strings.ToLower(gv.Group) != strings.ToLower(gr.Group) {
+			klog.V(8).Infof("skip - gr=%v,gv=%v", gr.String(), gr.String())
+			continue
+		}
+
+		//We are looking at the correct API Group
+		//Look at the resource kinds
+
+		for _, apiResource := range apiResourceList.APIResources {
+
+			possibleNames := sets.NewString(apiResource.ShortNames...)
+			possibleNames.Insert(strings.ToLower(apiResource.Name))
+			possibleNames.Insert(strings.ToLower(apiResource.Kind))
+
+			if !possibleNames.Has(strings.ToLower(gr.Resource)) {
+				klog.V(8).Infof("skip - gr=%v NOT in [%v]", gr.String(), strings.Join(possibleNames.List(), ","))
+				continue
+			}
+
+			r := schema.GroupResource{
+				Group:    strings.ToLower(gv.Group),
+				Resource: strings.ToLower(apiResource.Name),
+			}
+
+			possibleVerbs := sets.NewString(apiResource.Verbs...)
+			if !possibleVerbs.Has(strings.ToLower(verb)) {
+				klog.V(8).Infof("skip - gr=%v is not in [%v]", gr.String(), strings.Join(possibleVerbs.List(), ","))
+				return r, fmt.Errorf("The verb '%s' is not supported by %v", strings.ToLower(verb), r.String())
+			}
+
+			//We have a match
+			return r, nil
+		}
+	}
+
+	return schema.GroupResource{}, fmt.Errorf("Failed find a matching API resource")
 }
