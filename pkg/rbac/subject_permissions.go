@@ -1,8 +1,11 @@
 package rbac
 
 import (
-	v1 "k8s.io/api/rbac/v1"
 	"sort"
+	"strings"
+
+	v1 "k8s.io/api/rbac/v1"
+	"k8s.io/klog"
 )
 
 type SubjectPermissions struct {
@@ -21,13 +24,20 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 				var exist bool
 				var subPerms *SubjectPermissions
 
-				roles, exist := perms.Roles[binding.Namespace]
+				ns := binding.Namespace
+				if strings.ToLower(binding.RoleRef.Kind) == "clusterrole" {
+					ns = ""
+				}
+
+				roles, exist := perms.Roles[ns]
 				if !exist {
+					klog.V(6).Infof("%+v didn't find roles for namespace '%v'", binding, ns)
 					continue
 				}
 
 				role, exist := roles[binding.RoleRef.Name]
 				if !exist {
+					klog.V(6).Infof("%+v didn't find role '%v' in '%v'", binding, binding.RoleRef.Name, ns)
 					continue
 				}
 
@@ -45,6 +55,8 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 				if !exist {
 					rules = []v1.PolicyRule{}
 				}
+
+				//klog.V(6).Infof("%+v --add-- %v %v", subject, len(rules), len(role.Rules))
 
 				rules = append(rules, role.Rules...)
 				subPerms.Rules[binding.Namespace] = rules
@@ -128,40 +140,33 @@ func NewSubjectPermissionsList(policies []SubjectPermissions) []SubjectPolicyLis
 				sort.Strings(rule.NonResourceURLs)
 
 				for _, verb := range rule.Verbs {
-					for _, apiGroup := range rule.APIGroups {
-						for _, resource := range rule.Resources {
-							//if len(rule.APIGroups) == 0 {
-							//	rule.APIGroups = []string{"-"}
-							//}
-							//
-							//if len(rule.Resources) == 0 {
-							//	rule.Resources = []string{"-"}
-							//}
-							//
-							//if len(rule.ResourceNames) == 0 {
-							//	if len(rule.APIGroups) == 0 {
-							//		rule.ResourceNames = []string{"-"}
-							//	} else {
-							//		rule.ResourceNames = []string{"-"}
-							//	}
-							//}
-							//
-							//if len(rule.NonResourceURLs) == 0 {
-							//	rule.NonResourceURLs = []string{"-"}
-							//}
 
-							subjectPolicy := NamespacedPolicyRule{
-								Namespace:       namespace,
-								Verb:            verb,
-								APIGroup:        apiGroup,
-								Resource:        resource,
-								ResourceNames:   rule.ResourceNames,
-								NonResourceURLs: rule.NonResourceURLs,
+					if len(rule.NonResourceURLs) == 0 {
+						// The common case ... let's flatten the rule
+						for _, apiGroup := range rule.APIGroups {
+							for _, resource := range rule.Resources {
+								subjectPolicy := NamespacedPolicyRule{
+									Namespace:       namespace,
+									Verb:            verb,
+									APIGroup:        apiGroup,
+									Resource:        resource,
+									ResourceNames:   rule.ResourceNames,
+									NonResourceURLs: rule.NonResourceURLs,
+								}
+
+								nsrules = append(nsrules, subjectPolicy)
 							}
 
-							nsrules = append(nsrules, subjectPolicy)
+						}
+					} else {
+						// NonResourceURL ... not namespaced
+						subjectPolicy := NamespacedPolicyRule{
+							Namespace:       namespace,
+							Verb:            verb,
+							NonResourceURLs: rule.NonResourceURLs,
 						}
 
+						nsrules = append(nsrules, subjectPolicy)
 					}
 				}
 			}

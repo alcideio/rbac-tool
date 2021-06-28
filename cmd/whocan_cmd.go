@@ -7,14 +7,14 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/klog"
-	"sigs.k8s.io/yaml"
-
 	"github.com/alcideio/rbac-tool/pkg/kube"
 	"github.com/alcideio/rbac-tool/pkg/rbac"
+
 	"github.com/antonmedv/expr"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"k8s.io/klog"
+	"sigs.k8s.io/yaml"
 )
 
 type whoCanQuery struct {
@@ -79,29 +79,30 @@ rbac-tool who-can watch deployments.apps
 			}
 
 			query := `
-filter(
-	Rules, 
-	{any(
-		.AllowedTo, 
-		 { 	.Verb     in [Verb, "*"] and 
-			.Resource in [Kind, "*"] and 
-            .APIGroup in [APIGroup, "*"] and 
-            (Name == "*" or len(.ResourceNames) == 0 or Name in .ResourceNames)
-		 }
-	)}
-)`
+				filter(
+					Rules, 
+					{any(
+						.AllowedTo, 
+						 { 	.Verb     in [Verb, "*"] and 
+							.Resource in [Kind, "*"] and 
+							.APIGroup in [APIGroup, "*"] and 
+							(Name == "*" or len(.ResourceNames) == 0 or Name in .ResourceNames)
+						 }
+					)}
+				)`
 
 			if strings.HasPrefix(kind, "/") {
 				queryEnv.NonResourceUrl = kind
-				////FIXME -
-				//query = `
-				//	filter(
-				//		Rules,
-				//		{one(
-				//			.AllowedTo, { 	(.Verb in [Verb, "*"]) and (	NonResourceUrl in .NonResourceUrls  )  }
-				//		)}
-				//
-				//	)`
+				query = `
+					filter(
+						Rules, 
+						{any(
+							.AllowedTo, 
+							 { 	.Verb           in [Verb, "*"] and 
+								(NonResourceUrl in .NonResourceURLs or (len(.NonResourceURLs) == 1 and .NonResourceURLs[0] == "*"))
+							 }
+						)}
+					)`
 			} else if strings.Contains(kind, "/") {
 				parts := strings.Split(kind, "/")
 
@@ -116,17 +117,19 @@ filter(
 				return fmt.Errorf("Failed to create kubernetes client - %v", err)
 			}
 
-			gr, err := client.Resolve(queryEnv.Verb, queryEnv.Kind, "")
-			if err != nil {
-				return err
+			if queryEnv.NonResourceUrl == "" {
+				gr, err := client.Resolve(queryEnv.Verb, queryEnv.Kind, "")
+				if err != nil {
+					return err
+				}
+
+				queryEnv.Kind = gr.Resource
+				if gr.Group != "" {
+					queryEnv.APIGroup = gr.Group
+				}
 			}
 
-			queryEnv.Kind = gr.Resource
-			if gr.Group != "" {
-				queryEnv.APIGroup = gr.Group
-			}
-
-			klog.V(8).Infof("%#v\n", queryEnv)
+			klog.V(8).Infof("query\n%v\n%#v\n", query, queryEnv)
 
 			program, err := expr.Compile(query)
 			if err != nil {

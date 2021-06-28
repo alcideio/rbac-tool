@@ -1,3 +1,15 @@
+#
+# Install:
+#  kubectl apply -f testdata/whocan/specific-resource-reader.yaml
+#
+# Run:
+#  bin/rbac-tool who-can get secrets/some-secret  | grep test-specific-secret-reader
+#
+# Expect:
+#
+#  ServiceAccount | test-specific-secret-reader-sa | test
+#  User           | test-specific-secret-reader    |
+#
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -22,6 +34,9 @@ subjects:
   - kind: User
     name: test-specific-secret-reader # "name" is case sensitive
     apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: test-specific-secret-reader-sa # "name" is case sensitive
+    namespace: test
 roleRef:
   # "roleRef" specifies the binding to a Role / ClusterRole
   kind: Role #this must be Role or ClusterRole

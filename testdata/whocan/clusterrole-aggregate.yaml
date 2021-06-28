@@ -1,3 +1,17 @@
+#
+# Install:
+#  kubectl apply -f testdata/whocan/clusterole-aggregate.yaml
+#
+# Run:
+#  bin/rbac-tool who-can get pod | grep test-aggregate
+#  bin/rbac-tool who-can create pod | grep test-aggregate
+#
+# Expect:
+#
+#  Group          | test-aggregate-group                   |
+#  ServiceAccount | test-aggregate-sa                      | test
+#  User           | test-aggregate-user                    |
+#
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
