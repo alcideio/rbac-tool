@@ -40,14 +40,16 @@ func NewCommandWhoCan() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Example:       "rbac-tool who-can delete deployments.apps",
-		Short:         "Shows which subjects have RBAC permissions to perform an action denoted by <VERB>  ( <KIND> | <KIND/NAME> | <NON-RESOURCE-URL>)",
+		Short:         "Shows which subjects have RBAC permissions to perform an action",
 		Long: `
-VERB is a logical Kubernetes API verb like 'get', 'list', 'watch', 'delete', etc.
-KIND is a Kubernetes resource kind. Shortcuts and API groups will be resolved, e.g. 'po' or 'pods.metrics.k8s.io'.
-NAME is the name of a particular Kubernetes resource.
-NON-RESOURCE-URL is a partial URL that starts with "/".
+Shows which subjects have RBAC permissions to perform an action denoted by VERB on an object denoted as ( KIND | KIND/NAME | NON-RESOURCE-URL)
 
-Shows which subjects have RBAC permissions to <VERB>  ( <KIND> | <KIND/NAME> | <NON-RESOURCE-URL>)
+* VERB is a logical Kubernetes API verb like 'get', 'list', 'watch', 'delete', etc.
+* KIND is a Kubernetes resource kind. Shortcuts and API groups will be resolved, e.g. 'po' or 'deploy'.
+* NAME is the name of a particular Kubernetes resource.
+* NON-RESOURCE-URL is a URL that starts with "/".
+
+Shows which subjects have RBAC permissions to <VERB>  ( KIND> | KIND/NAME | NON-RESOURCE-URL)
 
 Examples:
 
@@ -57,6 +59,11 @@ rbac-tool who-can get cm
 # Who can watch Deployments
 rbac-tool who-can watch deployments.apps
 
+# Who can read the Kubernetes API endpoint /apis
+rbac-tool who-can get /apis
+
+# Who can read a secret resource by the name some-secret
+rbac-tool who-can get secret/some-secret
 
 `,
 		Hidden: false,
