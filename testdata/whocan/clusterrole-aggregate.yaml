@@ -1,0 +1,79 @@
+#
+# Install:
+#  kubectl apply -f testdata/whocan/clusterole-aggregate.yaml
+#
+# Run:
+#  bin/rbac-tool who-can get pod | grep test-aggregate
+#  bin/rbac-tool who-can create pod | grep test-aggregate
+#
+# Expect:
+#
+#  Group          | test-aggregate-group                   |
+#  ServiceAccount | test-aggregate-sa                      | test
+#  User           | test-aggregate-user                    |
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: test-aggregate
+aggregationRule:
+  clusterRoleSelectors:
+    - matchLabels:
+        rbac.example.com/aggregate-test: "true"
+rules: [] # The control plane automatically fills in the rules
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: test-clusterrole-reader
+  labels:
+    rbac.example.com/aggregate-test: "true"
+# When you create the "monitoring-endpoints" ClusterRole,
+# the rules below will be added to the "monitoring" ClusterRole.
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: test-clusterrole-create
+  labels:
+    rbac.example.com/aggregate-test: "true"
+# When you create the "monitoring-endpoints" ClusterRole,
+# the rules below will be added to the "monitoring" ClusterRole.
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: ClusterRoleBinding
+metadata:
+  name: aggregate-pod-creator
+subjects:
+  # You can specify more than one "subject"
+  - kind: User
+    name: test-aggregate-user # "name" is case sensitive
+    apiGroup: rbac.authorization.k8s.io
+  - kind: Group
+    name: test-aggregate-group # "name" is case sensitive
+    apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: test-aggregate-sa # "name" is case sensitive
+    namespace: test
+
+
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: test-aggregate # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io

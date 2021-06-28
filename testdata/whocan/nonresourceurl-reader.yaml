@@ -1,0 +1,41 @@
+#
+# Install:
+# kubectl apply -f testdata/whocan/nonresourceurl-reader.yaml
+#
+# Run:
+# bin/rbac-tool who-can get /test-reader
+#
+# Expect:
+#
+#  TYPE  | SUBJECT                    | NAMESPACE
+#  +-------+----------------------------+-----------+
+#  Group | system:masters             |
+#  User  | test-nonresourceurl-reader |
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nonresourceurl-reader
+rules:
+  - verbs: ["get", "watch", "list"]
+    nonResourceURLs:
+      - /test-reader
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: read-nonresourceurl
+  namespace: test
+subjects:
+  # You can specify more than one "subject"
+  - kind: User
+    name: test-nonresourceurl-reader # "name" is case sensitive
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: nonresourceurl-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io

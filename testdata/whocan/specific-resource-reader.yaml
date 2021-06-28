@@ -1,0 +1,44 @@
+#
+# Install:
+#  kubectl apply -f testdata/whocan/specific-resource-reader.yaml
+#
+# Run:
+#  bin/rbac-tool who-can get secrets/some-secret  | grep test-specific-secret-reader
+#
+# Expect:
+#
+#  ServiceAccount | test-specific-secret-reader-sa | test
+#  User           | test-specific-secret-reader    |
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: test
+  name: specific-secret-reader
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["secrets"]
+    resourceNames: ["some-secret"]
+    verbs: ["get", "watch", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: read-specific-secrets
+  namespace: test
+subjects:
+  # You can specify more than one "subject"
+  - kind: User
+    name: test-specific-secret-reader # "name" is case sensitive
+    apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: test-specific-secret-reader-sa # "name" is case sensitive
+    namespace: test
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: specific-secret-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io

@@ -13,6 +13,9 @@ curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | b
 ## Command Line Examples
 
 ```shell script
+# Show which users/groups/service accounts are allowed to read secrets in the cluster pointed by kubeconfig
+rbac-tool who-can get secrets
+
 # Scan the cluster pointed by the kubeconfig context 'myctx'
 rbac-tool viz --cluster-context myctx
 

@@ -39,26 +39,32 @@ curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | b
 A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 
 ```shell script
+rbac-tool
+
 Usage:
   rbac-tool [command]
 
 Available Commands:
-  auditgen        Generate from Kubernetes audit events, RBAC policy
-  bash-completion Generate bash completion. source < (rbac-tool bash-completion)
+  auditgen        Generate RBAC policy from Kubernetes audit events
+  bash-completion Generate bash completion. source < (rbac-too bash-completion)
   generate        Generate Role or ClusterRole and reduce the use of wildcards
   help            Help about any command
   lookup          RBAC Lookup by subject (user/group/serviceaccount) name
   policy-rules    RBAC List Policy Rules For subject (user/group/serviceaccount) name
   version         Print rbac-tool version
   visualize       A RBAC visualizer
+  who-can         Shows which subjects have RBAC permissions to perform an action
 
 Flags:
   -h, --help      help for rbac-tool
   -v, --v Level   number for the log level verbosity
+
+Use "rbac-tool [command] --help" for more information about a command.
 ```
 
 - [The `rbac-tool viz` command](#rbac-tool-viz)
 - [The `rbac-tool lookup` command](#rbac-tool-lookup)
+- [The `rbac-tool who-can` command](#rbac-tool-who-can)
 - [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
 - [The `rbac-tool auditgen` command](#rbac-tool-auditgen)
 - [The `rbac-tool gen` command](#rbac-tool-gen)
@@ -130,9 +136,33 @@ rbac-tool lookup -e '^system:'
 ...
 ```
 
+# `rbac-tool who-can`
+
+Shows which subjects have RBAC permissions to perform an action denoted by VERB on an object denoted as ( KIND | KIND/NAME | NON-RESOURCE-URL)
+
+* VERB is a logical Kubernetes API verb like 'get', 'list', 'watch', 'delete', etc.
+* KIND is a Kubernetes resource kind. Shortcuts and API groups will be resolved, e.g. 'po' or 'deploy'.
+* NAME is the name of a particular Kubernetes resource.
+* NON-RESOURCE-URL is a partial URL that starts with "/".
+
+Examples:
+
+```shell script
+# Who can read ConfigMap resources
+rbac-tool who-can get cm
+
+# Who can watch Deployments
+rbac-tool who-can watch deployments.apps
+
+# Who can read the Kubernetes API endpoint /apis
+rbac-tool who-can get /apis
+
+# Who can read a secret resource by the name some-secret
+rbac-tool who-can get secret/some-secret
+
 # `rbac-tool policy-rules`
 List Kubernetes RBAC policy rules for a given User/ServiceAccount/Group with or without [regex](https://regex101.com/)
-
+```
 
 Examples:
 
