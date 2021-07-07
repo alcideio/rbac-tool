@@ -159,10 +159,11 @@ rbac-tool who-can get /apis
 
 # Who can read a secret resource by the name some-secret
 rbac-tool who-can get secret/some-secret
+```
 
 # `rbac-tool policy-rules`
 List Kubernetes RBAC policy rules for a given User/ServiceAccount/Group with or without [regex](https://regex101.com/)
-```
+
 
 Examples:
 
