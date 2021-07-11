@@ -62,6 +62,12 @@ archives:
       - rbac-tool
     name_template: '{{ .ProjectName }}_v{{ .Major }}.{{ .Minor }}.{{ .Patch }}_{{ .Os }}_{{ .Arch }}'
     format: binary
+  - id: krew
+    builds:
+      - rbac-tool
+    name_template: '{{ .ProjectName }}_v{{ .Major }}.{{ .Minor }}.{{ .Patch }}_{{ .Os }}_{{ .Arch }}'
+    format: tar.gz
+
 
 release:
   # Repo in which the release will be created.

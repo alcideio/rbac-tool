@@ -110,6 +110,14 @@ HELP_FUN = \
              print "  $$_->[0]$$sep$$_->[1]\n" ; \
          } print "\n"; }
 
+krew-template: ##@Krew Generate Krew plugin template
+	@docker run --rm -v $(CURDIR)/krew.yaml:/krew.yaml rajatjindal/krew-release-bot:v0.0.40   krew-release-bot template --tag $(shell git describe --tags --abbrev=0) --template-file /krew.yaml
+
+krew-test: ##@Krew Test template
+	make krew-template > krew-test.yaml
+	kubectl krew install --manifest=krew-test.yaml
+
+
 help: ##@Misc Show this help
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
