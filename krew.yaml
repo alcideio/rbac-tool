@@ -5,26 +5,26 @@ metadata:
 spec:
   version: {{ .TagName }}
   platforms:
-    - bin: rbac-tool
-      {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_linux_amd64.tar.gz" .TagName }}
-      selector:
-        matchLabels:
-          os: linux
-          arch: amd64
+  - bin: rbac-tool
+    {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_linux_amd64.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: linux
+        arch: amd64
 
-    - bin: rbac-tool
-      {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_darwin_amd64.tar.gz" .TagName }}
-      selector:
-        matchLabels:
-          os: darwin
-          arch: amd64
+  - bin: rbac-tool
+    {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_darwin_amd64.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: darwin
+        arch: amd64
 
-    - bin: rbac-tool.exe
-      {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_windows_amd64.tar.gz" .TagName }}
-      selector:
-        matchLabels:
-          os: windows
-          arch: amd64
+  - bin: rbac-tool.exe
+    {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_windows_amd64.tar.gz" .TagName }}
+    selector:
+      matchLabels:
+        os: windows
+        arch: amd64
 
   shortDescription: Plugin to analyze RBAC permissions and generate policies
   homepage: https://github.com/alcideio/rbac-tool
