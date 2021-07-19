@@ -21,7 +21,7 @@ ARCH          = $(shell uname -p)
 UPX_VERSION := 3.96
 UPX := $(CURDIR)/rbac-tool/bin/upx
 
-GORELEASER_VERSION := 0.166.1
+GORELEASER_VERSION := 0.173.2
 GORELEASER := $(CURDIR)/bin/goreleaser
 
 # go option

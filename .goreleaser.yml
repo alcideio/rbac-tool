@@ -39,7 +39,7 @@ builds:
       - goos: linux
         goarch: 386
     hooks:
-      post: /bin/bash hack/goreleaser-postbuild.sh
+      post: /bin/bash hack/goreleaser-postbuild.sh {{ .ProjectName }}_{{ .Os }}_{{ .Arch }} {{ .Os }}
 
 #signs:
 #  - artifacts: checksum
@@ -58,11 +58,6 @@ changelog:
 
 archives:
   - id: default
-    builds:
-      - rbac-tool
-    name_template: '{{ .ProjectName }}_v{{ .Major }}.{{ .Minor }}.{{ .Patch }}_{{ .Os }}_{{ .Arch }}'
-    format: binary
-  - id: krew
     builds:
       - rbac-tool
     name_template: '{{ .ProjectName }}_v{{ .Major }}.{{ .Minor }}.{{ .Patch }}_{{ .Os }}_{{ .Arch }}'
