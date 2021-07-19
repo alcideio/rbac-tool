@@ -10,7 +10,17 @@ A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
 ```
 
-## Command Line Examples
+#### kubectl plugin // <img src="https://raw.githubusercontent.com/kubernetes-sigs/krew/master/assets/logo/horizontal/color/krew-horizontal-color.png" alt="krew" width="48"/> //  
+
+ 
+
+```shell script
+$ kubectl krew install rbac-tool
+```
+
+
+
+## Command Line Examples (Standalone)
 
 ```shell script
 # Show which users/groups/service accounts are allowed to read secrets in the cluster pointed by kubeconfig

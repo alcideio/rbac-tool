@@ -1,6 +1,6 @@
 #
 # Install:
-#  kubectl apply -f testdata/whocan/clusterole-aggregate.yaml
+#  kubectl apply -f testdata/whocan/clusterrole-aggregate.yaml
 #
 # Run:
 #  bin/rbac-tool who-can get pod | grep test-aggregate

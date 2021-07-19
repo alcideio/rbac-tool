@@ -7,7 +7,7 @@ on:
       - '*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  releaseme:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,3 +24,7 @@ jobs:
         run: |
           make get-bins
           make gorelease
+      - name: Update new version in krew-index
+        uses: rajatjindal/krew-release-bot@v0.0.40
+        with:
+          krew_template_file: krew.yaml

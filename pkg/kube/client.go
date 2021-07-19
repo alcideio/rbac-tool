@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -13,10 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/version"
 	clientset "k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/azure" // auth for AKS clusters
-	_ "k8s.io/client-go/plugin/pkg/client/auth/exec"  // auth for OIDC
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"   // auth for GKE clusters
-	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"  // auth for OIDC
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
@@ -175,7 +173,7 @@ func (kubeClient *KubeClient) GetVerbsForResource(apiGroup string, resource stri
 }
 
 func (kubeClient *KubeClient) ListPods(namespace string) ([]v1.Pod, error) {
-	objs, err := kubeClient.Client.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -185,7 +183,7 @@ func (kubeClient *KubeClient) ListPods(namespace string) ([]v1.Pod, error) {
 }
 
 func (kubeClient *KubeClient) ListServiceAccounts(namespace string) ([]v1.ServiceAccount, error) {
-	objs, err := kubeClient.Client.CoreV1().ServiceAccounts(namespace).List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -195,7 +193,7 @@ func (kubeClient *KubeClient) ListServiceAccounts(namespace string) ([]v1.Servic
 }
 
 func (kubeClient *KubeClient) ListRoles(namespace string) ([]rbacv1.Role, error) {
-	objs, err := kubeClient.Client.RbacV1().Roles(namespace).List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.RbacV1().Roles(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -205,7 +203,7 @@ func (kubeClient *KubeClient) ListRoles(namespace string) ([]rbacv1.Role, error)
 }
 
 func (kubeClient *KubeClient) ListRoleBindings(namespace string) ([]rbacv1.RoleBinding, error) {
-	objs, err := kubeClient.Client.RbacV1().RoleBindings(namespace).List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.RbacV1().RoleBindings(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -215,7 +213,7 @@ func (kubeClient *KubeClient) ListRoleBindings(namespace string) ([]rbacv1.RoleB
 }
 
 func (kubeClient *KubeClient) ListClusterRoles() ([]rbacv1.ClusterRole, error) {
-	objs, err := kubeClient.Client.RbacV1().ClusterRoles().List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.RbacV1().ClusterRoles().List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -225,7 +223,7 @@ func (kubeClient *KubeClient) ListClusterRoles() ([]rbacv1.ClusterRole, error) {
 }
 
 func (kubeClient *KubeClient) ListClusterRoleBindings() ([]rbacv1.ClusterRoleBinding, error) {
-	objs, err := kubeClient.Client.RbacV1().ClusterRoleBindings().List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.RbacV1().ClusterRoleBindings().List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -235,7 +233,7 @@ func (kubeClient *KubeClient) ListClusterRoleBindings() ([]rbacv1.ClusterRoleBin
 }
 
 func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPolicy, error) {
-	objs, err := kubeClient.Client.PolicyV1beta1().PodSecurityPolicies().List(metav1.ListOptions{})
+	objs, err := kubeClient.Client.PolicyV1beta1().PodSecurityPolicies().List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err

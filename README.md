@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Tweet](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Falcideio%2Frbac-tool)
 
-<img src="rbac-tool.png" alt="rbac-tool" width="120"/>
+## <img src="https://www.rapid7.com/Areas/Docs/includes/img/r7-nav/Rapid7_logo-short.svg" alt="insightCloudSec" width="28"/> | insightCloudSec | RBAC TOOL  
 
 ## Kubernetes RBAC
 
@@ -28,10 +28,17 @@ If you want to define a role within a namespace, use a Role; if you want to defi
 
 ## Install
 
+#### Release Download
 Download the latest from the [release](https://github.com/alcideio/rbac-tool/releases) page
 
 ```shell script
 curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
+```
+
+#### kubectl plugin // <img src="https://raw.githubusercontent.com/kubernetes-sigs/krew/master/assets/logo/horizontal/color/krew-horizontal-color.png" alt="krew" width="48"/> //  
+
+```shell script
+$ kubectl krew install rbac-tool
 ```
 
 # rbac-tool

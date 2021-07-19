@@ -7,49 +7,37 @@ spec:
   platforms:
     - bin: rbac-tool
       {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_linux_amd64.tar.gz" .TagName }}
-      files:
-        - from: rbac-tool
-          to: rbac-tool
       selector:
         matchLabels:
           os: linux
           arch: amd64
 
     - bin: rbac-tool
-      files:
-        - from: rbac-tool
-          to: rbac-tool
-
       {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_darwin_amd64.tar.gz" .TagName }}
       selector:
         matchLabels:
           os: darwin
           arch: amd64
 
-    - bin: rbac-tool
+    - bin: rbac-tool.exe
       {{addURIAndSha "https://github.com/alcideio/rbac-tool/releases/download/{{ .TagName }}/rbac-tool_{{ .TagName }}_windows_amd64.tar.gz" .TagName }}
-      files:
-        - from: rbac-tool.exe
-          to: rbac-tool.exe
       selector:
         matchLabels:
           os: windows
           arch: amd64
 
-  shortDescription: Kubernetes RBAC Power Toys - Visualize, Analyze, Generate & Query
+  shortDescription: Plugin to analyze RBAC permissions and generate policies
   homepage: https://github.com/alcideio/rbac-tool
   description: |
-    This plugin is a collection of Kubernetes RBAC power tools to sugar coat Kubernetes RBAC complexity
+    This plugin is a collection of RBAC tools to simplify analysis and configuration.
+    You can visualize, analyze, query permissions as well as generate policies in multiple ways.
 
-    Available Commands:
-      auditgen        Generate RBAC policy from Kubernetes audit events
-      generate        Generate Role or ClusterRole and reduce the use of wildcards
-      lookup          RBAC Lookup by subject (user/group/serviceaccount) name
-      policy-rules    RBAC List Policy Rules For subject (user/group/serviceaccount) name
-      version         Print rbac-tool version
-      visualize       A RBAC visualizer
-      who-can         Shows which subjects have RBAC permissions to perform an action
+    Examples:
+    # Generate HTML visualzation of your RBAC permissions
+    kubectl rbac-tool viz
 
-    Flags:
-      -h, --help      help for rbac-tool
-      -v, --v Level   number for the log level verbosity
+    # Query who can read secrets
+    kubectl rbac-tool who-can get secret
+
+    # Generate a ClusterRole policy that allows to read everything except secrets and services
+    kubectl rbac-tool gen --deny-resources=secrets.,services. --allowed-verbs=get,list
