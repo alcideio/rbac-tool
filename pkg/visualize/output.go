@@ -49,7 +49,7 @@ func (r *HtmlReport) generateHeader() string {
 			<div class="row">
 				<div class="col-6 collapse-brand">
 					<a href="javascript:void(0)">
-						<img src="https://raw.githubusercontent.com/alcideio/rbac-tool/master/rbac-tool.png" height="48">
+						<img src="https://www.rapid7.com/includes/img/Rapid7_logo.svg" height="24">
 					</a>
 				</div>
 				<div class="col-6 collapse-close">
@@ -60,7 +60,7 @@ func (r *HtmlReport) generateHeader() string {
 				</div>
 			</div>
 			<div class="container">
-				<a class="navbar-brand" href="#"><span style="font-weight: 100; font-style: normal; font-size: 22px;">Alcide | RBAC Tool</span></a>
+				<a class="navbar-brand" href="#"><img src="https://www.rapid7.com/globalassets/_logos/insightcloudsec-w.svg" height="28"><span style="font-weight: 100; font-style: normal; font-size: 22px;"> | RBAC Tool</span></a>
 				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-default" aria-controls="navbar-default" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
@@ -86,7 +86,7 @@ func (r *HtmlReport) generateHeader() string {
 							</a>
 						</li>
 						<li class="nav-item">
-						  <a class="nav-link nav-link-icon" href="https://www.alcide.io/" target="_blank">
+						  <a class="nav-link nav-link-icon" href="https://www.rapid7.com/products/insightcloudsec/" target="_blank">
 							<i class="fas fa-home"></i>
 							<span class="nav-link-inner--text">Site</span>
 						  </a>
@@ -98,7 +98,7 @@ func (r *HtmlReport) generateHeader() string {
 							</a>
 						</li>
 						<li class="nav-item">
-						  <a class="nav-link nav-link-icon" href="https://twitter.com/alcideio" target="_blank">
+						  <a class="nav-link nav-link-icon" href="https://twitter.com/rapid7" target="_blank">
 							<i class="fab fa-twitter"></i>
 							<span class="nav-link-inner--text">Twitter</span>
 						  </a>
@@ -135,8 +135,8 @@ func (r *HtmlReport) generateFooter() string {
 					<div class="col-md-4 text-center p10">
 						<div>
  							<span>
-								<a href="javascript:void(0)"><img src="https://raw.githubusercontent.com/alcideio/rbac-tool/master/rbac-tool.png" height="96"></a>
-								<p class="mt-4" style="font-weight: 100; font-style: normal; font-size: 18px;">Brought to You by <a target="_blank" href="https://www.alcide.io">Alcide's</a> Kubernetes Obsession</p>
+								<a href="javascript:void(0)"><img src="https://www.rapid7.com/contentassets/cd8848ed7b7d4ab1818066b23f0d6d0c/r7-insight-wheel2.png" height="256"></a>
+								<p class="mt-4" style="font-weight: 100; font-style: normal; font-size: 18px;">Brought to You by <a target="_blank" href="https://www.rapid7.com/products/insightcloudsec/">Rapid7 InsightCloudSec</a> Kubernetes Obsession</p>
 							</span>
 						</div>
 					</div>
@@ -278,8 +278,8 @@ func (r *HtmlReport) Generate() (out string, err error) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="shortcut icon" href="https://www.alcide.io/wp-content/themes/alcide/favicon.ico" />
-  <title>[Alcide] RBAC Tool for Kubernetes</title>
+  <link rel="shortcut icon" href="https://www.rapid7.com/includes/img/favicon.ico" />
+  <title>[Rapid7 | InsightCloudSec] Kubernetes RBAC Power Toys</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet">

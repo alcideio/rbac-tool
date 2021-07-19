@@ -21,7 +21,7 @@ ARCH          = $(shell uname -p)
 UPX_VERSION := 3.96
 UPX := $(CURDIR)/rbac-tool/bin/upx
 
-GORELEASER_VERSION := 0.166.1
+GORELEASER_VERSION := 0.173.2
 GORELEASER := $(CURDIR)/bin/goreleaser
 
 # go option
@@ -111,11 +111,19 @@ HELP_FUN = \
          } print "\n"; }
 
 krew-template: ##@Krew Generate Krew plugin template
-	@docker run --rm -v $(CURDIR)/krew.yaml:/krew.yaml rajatjindal/krew-release-bot:v0.0.40   krew-release-bot template --tag $(shell git describe --tags --abbrev=0) --template-file /krew.yaml
+	@docker run --rm -v $(CURDIR)/krew.yaml:/krew.yaml rajatjindal/krew-release-bot:v0.0.40   krew-release-bot template --tag $(shell git describe --tags --abbrev=0) --template-file /krew.yaml > krew-test.yaml
 
-krew-test: ##@Krew Test template
-	make krew-template > krew-test.yaml
-	kubectl krew install --manifest=krew-test.yaml
+krew-test: krew-template ##@Krew Local test of kubectl krew plugin
+	@kubectl krew uninstall rbac-tool || true
+	@echo "Test Mac (amd64)"
+	KREW_OS=darwin KREW_ARCH=amd64 kubectl krew install --manifest=krew-test.yaml
+	@kubectl krew uninstall rbac-tool || true
+	@echo "Test Windows (amd64)"
+	KREW_OS=windows KREW_ARCH=amd64 kubectl krew install --manifest=krew-test.yaml
+	@echo "Test Linux (amd64)"
+	@kubectl krew uninstall rbac-tool || true
+	KREW_OS=linux KREW_ARCH=amd64 kubectl krew install --manifest=krew-test.yaml
+	kubectl rbac-tool generate
 
 
 help: ##@Misc Show this help
