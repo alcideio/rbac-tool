@@ -1,10 +1,10 @@
-# rbac-tool
-
-<img src="https://github.com/alcideio/rbac-tool/raw/master/rbac-tool.png" alt="rbac-tool" width="128"/>
+## <img src="https://www.rapid7.com/Areas/Docs/includes/img/r7-nav/Rapid7_logo-short.svg" alt="insightCloudSec" width="28"/> | insightCloudSec | RBAC TOOL  
 
 A collection of Kubernetes RBAC tools to sugar coat Kubernetes RBAC complexity
 
 ## Install
+
+#### Standalone
 
 ```shell script
 curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
@@ -12,13 +12,9 @@ curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | b
 
 #### kubectl plugin // <img src="https://raw.githubusercontent.com/kubernetes-sigs/krew/master/assets/logo/horizontal/color/krew-horizontal-color.png" alt="krew" width="48"/> //  
 
- 
-
 ```shell script
 $ kubectl krew install rbac-tool
 ```
-
-
 
 ## Command Line Examples (Standalone)
 
@@ -48,4 +44,17 @@ rbac-tool auditgen -f testdata  | rbac-tool viz   -f -
 
 # Generate a `ClusterRole` policy that allows to read everything **except** *secrets* and *services*
 rbac-tool  gen  --deny-resources=secrets.,services. --allowed-verbs=get,list
+```
+
+## kubectl rbac-tool ...
+
+```shell script
+# Generate HTML visualzation of your RBAC permissions
+kubectl rbac-tool viz
+
+# Query who can read secrets
+kubectl rbac-tool who-can get secret
+
+# Generate a ClusterRole policy that allows to read everything except secrets and services
+kubectl rbac-tool gen --deny-resources=secrets.,services. --allowed-verbs=get,list
 ```

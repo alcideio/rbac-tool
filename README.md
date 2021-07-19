@@ -28,14 +28,14 @@ If you want to define a role within a namespace, use a Role; if you want to defi
 
 ## Install
 
-#### Release Download
+#### Standalone
 Download the latest from the [release](https://github.com/alcideio/rbac-tool/releases) page
 
 ```shell script
 curl https://raw.githubusercontent.com/alcideio/rbac-tool/master/download.sh | bash
 ```
 
-#### kubectl plugin // <img src="https://raw.githubusercontent.com/kubernetes-sigs/krew/master/assets/logo/horizontal/color/krew-horizontal-color.png" alt="krew" width="48"/> //  
+#### kubectl plugin // <img src="https://raw.githubusercontent.com/kubernetes-sigs/krew/master/assets/logo/horizontal/color/krew-horizontal-color.png" alt="krew" width="48"/>  
 
 ```shell script
 $ kubectl krew install rbac-tool
