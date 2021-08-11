@@ -59,7 +59,7 @@ func openStreams(sources []string) ([]io.ReadCloser, []error) {
 				continue
 			}
 
-			req.Header.Set("User-Agent", "alcideio/rbac-tool "+goruntime.GOOS+"/"+goruntime.GOARCH)
+			req.Header.Set("User-Agent", "insightcloudsec "+goruntime.GOOS+"/"+goruntime.GOARCH)
 
 			resp, err := client.Do(req)
 			if err != nil {
