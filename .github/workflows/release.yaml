@@ -23,6 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           make get-bins
+          make test
           make gorelease
       - name: Update new version in krew-index
         uses: rajatjindal/krew-release-bot@v0.0.40
