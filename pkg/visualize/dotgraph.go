@@ -20,15 +20,15 @@ const (
 	roleColorOutline = "#01080a"
 	roleColorText    = "white"
 
-	roleBindingColor        = "#17b87e"
+	roleBindingColor        = "#00994c"
 	roleBindingColorOutline = "#01080a"
 	roleBindingColorText    = "white"
 
-	clusterRoleColor        = "#747474"
+	clusterRoleColor        = "#006666"
 	clusterRoleColorOutline = "#01080a"
 	clusterRoleColorText    = "#f4f4f4"
 
-	clusterRoleBindingColor        = "#747474"
+	clusterRoleBindingColor        = "#006633"
 	clusterRoleBindingColorOutline = "#01080a"
 	clusterRoleBindingColorText    = "#f4f4f4"
 
