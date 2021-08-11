@@ -74,6 +74,9 @@ get-release-bins: ##@build Download goreleaser
 build: ##@build Build on local platform
 	export CGO_ENABLED=0 && go build -o $(BINDIR)/$(BINNAME) -tags staticbinary -v -ldflags '$(LDFLAGS)'  github.com/alcideio/rbac-tool
 
+.PHONY: test
+test: ##@Test run tests
+	go test -v github.com/alcideio/rbac-tool/pkg/...
 
 create-kind-cluster:  ##@Test creatte KIND cluster
 	kind create cluster --image kindest/node:v1.18.2 --name rbak
