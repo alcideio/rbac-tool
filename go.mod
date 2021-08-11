@@ -10,11 +10,15 @@ require (
 	github.com/emicklei/dot v0.10.2
 	github.com/fatih/color v1.7.0
 	github.com/fatih/structs v1.1.0
+	github.com/google/cel-go v0.7.3
+	github.com/google/uuid v1.1.2
 	github.com/huandu/xstrings v1.3.0 // indirect
+	github.com/kr/pretty v0.2.0
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5
 	github.com/spf13/cobra v1.0.0
+	google.golang.org/protobuf v1.25.0
 	k8s.io/api v0.19.13
 	k8s.io/apimachinery v0.19.13
 	k8s.io/apiserver v0.19.13
