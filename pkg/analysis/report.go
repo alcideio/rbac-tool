@@ -17,6 +17,8 @@ type AnalysisReport struct {
 type AnalysisStats struct {
 	//Analysis Rules
 	RuleCount int
+
+	ExclusionCount int
 }
 
 type AnalysisReportFinding struct {

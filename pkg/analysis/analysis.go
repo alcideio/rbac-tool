@@ -240,15 +240,6 @@ func (a *analyzer) initialize() error {
 		a.globalExclusions = append(a.globalExclusions, anExclusion)
 	}
 
-	for i, _ := range a.config.Rules {
-		aRule, err := newAnalysisRule(&a.config.Rules[i])
-		if err != nil {
-			return err
-		}
-		klog.V(5).Infof("Initialized Rule '%v'", a.config.Rules[i].Name)
-		a.rules = append(a.rules, aRule)
-	}
-
 	m := make(map[string]interface{})
 	if err := json.Unmarshal(b, &m); err != nil {
 		return err
@@ -282,21 +273,23 @@ func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*e
 			return false, fmt.Errorf("Failed to cast exclusion result '%v'", exclusion.exclusion.Comment)
 		}
 
-		return exclude, nil
+		if exclude {
+			return true, nil
+		}
 	}
 
 	return false, nil
 }
 
 func (a *analyzer) Analyze() (*AnalysisReport, error) {
+	analysisStats := AnalysisStats{
+		RuleCount: len(a.config.Rules),
+	}
 	report := AnalysisReport{
 		AnalysisConfigInfo: AnalysisConfigInfo{
 			Name:        a.config.Name,
 			Description: a.config.Description,
 			Uuid:        a.config.Uuid,
-		},
-		Stats: AnalysisStats{
-			RuleCount: len(a.config.Rules),
 		},
 		CreatedOn: time.Now().Format(time.RFC3339),
 		Findings:  []AnalysisReportFinding{},
@@ -344,6 +337,7 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 			}
 
 			if exclude {
+				analysisStats.ExclusionCount++
 				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name)
 				continue
 			}
@@ -356,6 +350,7 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 			}
 
 			if exclude {
+				analysisStats.ExclusionCount++
 				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name)
 				continue
 			}
@@ -406,6 +401,8 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 		}
 
 	}
+
+	report.Stats = analysisStats
 
 	return &report, nil
 }
