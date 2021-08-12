@@ -20,9 +20,10 @@ type Analyzer interface {
 
 func CreateAnalyzer(config *AnalysisConfig, policies []rbac.SubjectPolicyList) Analyzer {
 	analyzer := analyzer{
-		config:   *config,
-		policies: policies,
-		rules:    []*analysisRule{},
+		config:           *config,
+		policies:         policies,
+		rules:            []*analysisRule{},
+		globalExclusions: []*exclusion{},
 	}
 
 	if err := analyzer.initialize(); err != nil {
@@ -42,6 +43,7 @@ type analysisRule struct {
 	//Internal State
 	compiledRecommendationExpr cel.Program
 
+	exclusions []*exclusion
 }
 
 func createAnalysisExpr(expr string) (cel.Program, error) {
@@ -123,6 +125,7 @@ func createRecommendationExpr(expr string) (cel.Program, error) {
 func newAnalysisRule(rule *Rule) (*analysisRule, error) {
 	r := &analysisRule{
 		rule: rule,
+		exclusions: []*exclusion{},
 	}
 
 	compiledAnalysisExpr, err := createAnalysisExpr(rule.AnalysisExpr)
@@ -137,6 +140,74 @@ func newAnalysisRule(rule *Rule) (*analysisRule, error) {
 	}
 	r.compiledRecommendationExpr = compiledRecommendationExpr
 
+	for i := range rule.Exclusions {
+		anExclusion, err := newExclusion(&rule.Exclusions[i])
+		if err != nil {
+			return nil, err
+		}
+		klog.V(5).Infof("Initialized Rule Exclusion '%v'", rule.Exclusions[i].Comment)
+		r.exclusions = append(r.exclusions, anExclusion)
+	}
+
+	return r, nil
+}
+
+type exclusion struct {
+	exclusion *Exclusion
+
+	//Internal State
+	compiledExceptionExpr cel.Program
+}
+
+func createExclusionExpr(expr string) (cel.Program, error) {
+
+	d := cel.Declarations(
+		decls.NewVar("subject", decls.Dyn),
+	)
+
+	env, err := cel.NewEnv(d)
+	if err != nil {
+		return nil, err
+	}
+
+	ast, iss := env.Compile(expr)
+	// Check iss for compilation errors.
+	if iss.Err() != nil {
+		return nil, iss.Err()
+	}
+
+	// Type-check the expression for correctness.
+	checked, iss := env.Check(ast)
+
+	// Report semantic errors, if present.
+	if iss.Err() != nil {
+		return nil, iss.Err()
+	}
+
+	// Check the result type is a string.
+	if !proto.Equal(checked.ResultType(), decls.Bool) {
+		return nil, fmt.Errorf("Got %v, wanted %v result type", checked.ResultType(), decls.Bool)
+	}
+
+	prg, err := env.Program(checked)
+	if err != nil {
+		return nil, err
+	}
+
+	return prg, nil
+}
+
+func newExclusion(exclusionInfo *Exclusion) (*exclusion, error) {
+	r := &exclusion{
+		exclusion: exclusionInfo,
+	}
+
+	compiledExclusionExpr, err := createExclusionExpr(exclusionInfo.Expression)
+	if err != nil {
+		return nil, err
+	}
+	r.compiledExceptionExpr = compiledExclusionExpr
+
 	return r, nil
 }
 
@@ -147,6 +218,9 @@ type analyzer struct {
 	Findings []AnalysisReportFinding
 
 	rules []*analysisRule
+
+	globalExclusions []*exclusion
+
 	policiesObj interface{}
 }
 
@@ -155,6 +229,24 @@ func (a *analyzer) initialize() error {
 	b, err := json.Marshal(map[string]interface{}{"subjects": a.policies})
 	if err != nil {
 		return err
+	}
+
+	for i := range a.config.GlobalExclusions {
+		anExclusion, err := newExclusion(&a.config.GlobalExclusions[i])
+		if err != nil {
+			return err
+		}
+		klog.V(5).Infof("Initialized Global Exclusion '%v'", a.config.GlobalExclusions[i].Comment)
+		a.globalExclusions = append(a.globalExclusions, anExclusion)
+	}
+
+	for i, _ := range a.config.Rules {
+		aRule, err := newAnalysisRule(&a.config.Rules[i])
+		if err != nil {
+			return err
+		}
+		klog.V(5).Infof("Initialized Rule '%v'", a.config.Rules[i].Name)
+		a.rules = append(a.rules, aRule)
 	}
 
 	m := make(map[string]interface{})
@@ -174,6 +266,28 @@ func (a *analyzer) initialize() error {
 
 	return nil
 }
+
+func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*exclusion) (bool, error) {
+	for _,exclusion := range exclusions {
+		recommendationOutput, _, err := exclusion.compiledExceptionExpr.Eval(map[string]interface{}{
+			"subject": subject,
+		})
+
+		if err != nil {
+			return false, err
+		}
+
+		exclude, ok := recommendationOutput.Value().(bool)
+		if !ok {
+			return false, fmt.Errorf("Failed to cast exclusion result '%v'", exclusion.exclusion.Comment)
+		}
+
+		return exclude, nil
+	}
+
+	return false, nil
+}
+
 
 func (a *analyzer) Analyze() (*AnalysisReport, error) {
 	report := AnalysisReport{
@@ -223,6 +337,30 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 		for _, subject := range subjects {
 			sub := subject.(map[string]interface{})
 
+			exclude, err := a.shouldExclude(sub, rule.exclusions)
+			if err != nil {
+				klog.Errorf("Failed to check exclusion for rule '%v' and subject %v - %v", rule.rule.Name, sub, err)
+				errs = append(errs, err)
+				//Continue on error - assume malformed exception expression
+			}
+
+			if exclude {
+				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name,)
+				continue
+			}
+
+			exclude, err = a.shouldExclude(sub, a.globalExclusions)
+			if err != nil {
+				klog.Errorf("Failed to check global exclusion for rule '%v' and subject %v - %v", rule.rule.Name, sub, err)
+				errs = append(errs, err)
+				//Continue on error - assume malformed exception expression
+			}
+
+			if exclude {
+				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name,)
+				continue
+			}
+
 			recommendationOutput, _, err := rule.compiledRecommendationExpr.Eval(map[string]interface{}{
 				"subject": sub,
 			})
@@ -238,8 +376,6 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 				klog.Fatalf("Failed to evaluate rule '%v' - %v", rule.rule.Name, err)
 			}
 
-
-
 			info := AnalysisFinding{
 				Severity:       rule.rule.Severity,
 				Message:        rule.rule.Description,
@@ -249,19 +385,17 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 				References:     rule.rule.References,
 			}
 
-
-
 			s := v1.Subject{}
-			if kind,exist := sub["kind"]; exist {
+			if kind, exist := sub["kind"]; exist {
 				s.Kind = kind.(string)
 			}
-			if apiGroup,exist := sub["apiGroup"]; exist {
+			if apiGroup, exist := sub["apiGroup"]; exist {
 				s.APIGroup = apiGroup.(string)
 			}
-			if name,exist := sub["name"]; exist {
+			if name, exist := sub["name"]; exist {
 				s.Name = name.(string)
 			}
-			if namespace,exist := sub["namespace"]; exist {
+			if namespace, exist := sub["namespace"]; exist {
 				s.Namespace = namespace.(string)
 			}
 
@@ -276,5 +410,3 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 
 	return &report, nil
 }
-
-
