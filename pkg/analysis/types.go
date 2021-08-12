@@ -11,7 +11,7 @@ import (
 const (
 	SEVERITY_CRIT = "CRITICAL"
 	SEVERITY_HIGH = "HIGH"
-	SEVERITY_MED = "MEDIUM"
+	SEVERITY_MED  = "MEDIUM"
 	SEVERITY_INFO = "INFO"
 )
 
@@ -39,6 +39,8 @@ type Rule struct {
 	//Any Resources that we should not report about.
 	// For example do not report on findings from kube-system namespace
 	Exclusions []Exclusion
+
+	ExclusionCount uint32
 }
 
 type Exclusion struct {
@@ -78,6 +80,8 @@ type AnalysisConfig struct {
 	AnalysisConfigInfo
 
 	Rules []Rule
+
+	GlobalExclusions []Exclusion
 }
 
 func ExportAnalysisConfig(format string, c *AnalysisConfig) (string, error) {

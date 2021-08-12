@@ -15,6 +15,16 @@ func DefaultAnalysisConfig() *AnalysisConfig {
 		},
 
 		Rules: defaultRules,
+		GlobalExclusions: []Exclusion{
+			{
+				Disabled:     false,
+				Comment:      "Exclude kube-system from analysis",
+				AddedBy:      "InsightCloudSec@rapid7.com",
+				LastModified: time.Now().Format(time.RFC3339),
+				SnoozeUntil:  0,
+				Expression:   `subject.namespace == "kube-system"`,
+			},
+		},
 	}
 }
 
@@ -31,9 +41,9 @@ var defaultRules Rules = []Rule{
 "Review the \'"+ subject.kind +"\' policy rules for \'" + subject.name + "\' by running \'rbac-tool policy-rules -e " + subject.name +"\'" +
 "\nYou can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
 `,
-		Uuid:        uuid.MustParse("3c942117-f4ff-423a-83d4-f7d6b75a6b78").String(),
-		Severity:    SEVERITY_HIGH,
-		References:  []string{},
+		Uuid:       uuid.MustParse("3c942117-f4ff-423a-83d4-f7d6b75a6b78").String(),
+		Severity:   SEVERITY_HIGH,
+		References: []string{},
 		AnalysisExpr: `
 				subjects.filter(
 					subject, subject.allowedTo.exists(
@@ -43,14 +53,6 @@ var defaultRules Rules = []Rule{
                         (has(rule.apiGroup) && rule.apiGroup in ['core', '*'])
 					)
 				)`,
-		Exclusions: []Exclusion{
-			{
-				Disabled:     false,
-				Comment:      "Exclude kube-system from analysis",
-				AddedBy:      "InsightCloudSec@rapid7.com",
-				LastModified: time.Now().Format(time.RFC3339),
-				SnoozeUntil:  0,
-				Expression:   `subject.namespace == "kube-system"`},
-		},
+		Exclusions: []Exclusion{},
 	},
 }
