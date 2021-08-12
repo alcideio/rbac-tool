@@ -11,7 +11,6 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-
 func NewCommandAnalysis() *cobra.Command {
 
 	clusterContext := ""
@@ -61,7 +60,6 @@ rbac-tool analyze
 
 			permsPerSubject := rbac.NewSubjectPermissions(perms)
 			policies := rbac.NewSubjectPermissionsList(permsPerSubject)
-
 
 			analyzer := analysis.CreateAnalyzer(analysisConfig, policies)
 			if analyzer == nil {
@@ -137,18 +135,17 @@ rbac-tool analyze
 
 	cmd.AddCommand(
 		NewCommandGenerateAnalysisConfig(),
-		)
+	)
 
 	return cmd
 }
 
-
 func NewCommandGenerateAnalysisConfig() *cobra.Command {
 	return &cobra.Command{
-		Use:   "generate",
+		Use:     "generate",
 		Aliases: []string{"gen"},
-		Hidden: true,
-		Short: "Generate Analysis Config",
+		Hidden:  true,
+		Short:   "Generate Analysis Config",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := analysis.ExportDefaultConfig("yaml")
 			if err != nil {

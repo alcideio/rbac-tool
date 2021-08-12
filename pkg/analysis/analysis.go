@@ -124,7 +124,7 @@ func createRecommendationExpr(expr string) (cel.Program, error) {
 
 func newAnalysisRule(rule *Rule) (*analysisRule, error) {
 	r := &analysisRule{
-		rule: rule,
+		rule:       rule,
 		exclusions: []*exclusion{},
 	}
 
@@ -268,7 +268,7 @@ func (a *analyzer) initialize() error {
 }
 
 func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*exclusion) (bool, error) {
-	for _,exclusion := range exclusions {
+	for _, exclusion := range exclusions {
 		recommendationOutput, _, err := exclusion.compiledExceptionExpr.Eval(map[string]interface{}{
 			"subject": subject,
 		})
@@ -287,7 +287,6 @@ func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*e
 
 	return false, nil
 }
-
 
 func (a *analyzer) Analyze() (*AnalysisReport, error) {
 	report := AnalysisReport{
@@ -345,7 +344,7 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 			}
 
 			if exclude {
-				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name,)
+				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name)
 				continue
 			}
 
@@ -357,7 +356,7 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 			}
 
 			if exclude {
-				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name,)
+				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name)
 				continue
 			}
 

@@ -7,7 +7,7 @@ import (
 
 var (
 	Version = ""
-	Commit = ""
+	Commit  = ""
 )
 
 func NewCommandVersion() *cobra.Command {
@@ -19,4 +19,3 @@ func NewCommandVersion() *cobra.Command {
 		},
 	}
 }
-

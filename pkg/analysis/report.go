@@ -43,4 +43,3 @@ type AnalysisFinding struct {
 	//Documetation & additional reading references
 	References []string
 }
-
