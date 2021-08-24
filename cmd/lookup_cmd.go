@@ -100,13 +100,20 @@ rbac-tool lookup -ne '^system:.*'
 						}
 
 						//Subject match
-						_, exist := perms.Roles[binding.Namespace]
+						roleNamespace := binding.Namespace
+						if binding.RoleRef.Kind == "ClusterRole" {
+							roleNamespace = ""
+						}
+						_, exist := perms.Roles[roleNamespace]
 						if !exist {
 							continue
 						}
 
 						if binding.Namespace == "" {
 							row := []string{subject.Name, subject.Kind, "ClusterRole", "", binding.RoleRef.Name}
+							rows = append(rows, row)
+						} else if binding.Namespace != "" && roleNamespace == "" {
+							row := []string{subject.Name, subject.Kind, "ClusterRole", binding.Namespace, binding.RoleRef.Name}
 							rows = append(rows, row)
 						} else {
 							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name}
