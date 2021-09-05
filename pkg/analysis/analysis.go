@@ -130,13 +130,13 @@ func newAnalysisRule(rule *Rule) (*analysisRule, error) {
 
 	compiledAnalysisExpr, err := createAnalysisExpr(rule.AnalysisExpr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create analysis expression - %v", err)
 	}
 	r.compiledAnalysisExpr = compiledAnalysisExpr
 
 	compiledRecommendationExpr, err := createRecommendationExpr(rule.Recommendation)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create Recommendation - %v", err)
 	}
 	r.compiledRecommendationExpr = compiledRecommendationExpr
 

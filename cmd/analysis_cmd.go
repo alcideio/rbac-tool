@@ -3,10 +3,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+
 	"github.com/alcideio/rbac-tool/pkg/analysis"
 	"github.com/alcideio/rbac-tool/pkg/kube"
 	"github.com/alcideio/rbac-tool/pkg/rbac"
-
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
@@ -72,38 +76,45 @@ rbac-tool analyze
 			}
 
 			switch output {
-			//case "table":
-			//	rows := [][]string{}
-			//
-			//	for _, e := range filteredPolicies {
-			//		p := e.(rbac.SubjectPolicyList)
-			//		row := []string{
-			//			p.Kind,
-			//			p.Name,
-			//			p.Namespace,
-			//		}
-			//		rows = append(rows, row)
-			//	}
-			//
-			//	sort.Slice(rows, func(i, j int) bool {
-			//		if strings.Compare(rows[i][0], rows[j][0]) == 0 {
-			//			return (strings.Compare(rows[i][1], rows[j][1]) < 0)
-			//		}
-			//
-			//		return (strings.Compare(rows[i][0], rows[j][0]) < 0)
-			//	})
-			//
-			//	table := tablewriter.NewWriter(os.Stdout)
-			//	table.SetHeader([]string{"TYPE", "SUBJECT", "NAMESPACE"})
-			//	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-			//	table.SetBorder(false)
-			//	table.SetAlignment(tablewriter.ALIGN_LEFT)
-			//	//table.SetAutoMergeCells(true)
-			//
-			//	table.AppendBulk(rows)
-			//	table.Render()
-			//
-			//	return nil
+			case "table":
+				rows := [][]string{}
+
+				for _, f := range report.Findings {
+
+					row := []string{
+						f.Subject.Kind,
+						f.Subject.Name,
+						f.Subject.Namespace,
+						f.Finding.RuleName,
+						strings.ToUpper(f.Finding.Severity),
+
+						f.Finding.Message,
+						f.Finding.Recommendation,
+						strings.Join(f.Finding.References, ","),
+					}
+					rows = append(rows, row)
+				}
+
+				sort.Slice(rows, func(i, j int) bool {
+					if strings.Compare(rows[i][0], rows[j][0]) == 0 {
+						return (strings.Compare(rows[i][1], rows[j][1]) < 0)
+					}
+
+					return (strings.Compare(rows[i][0], rows[j][0]) < 0)
+				})
+
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetHeader([]string{"TYPE", "SUBJECT", "NAMESPACE", "RULE", "SEVERITY", "INFO", "RECOMMENDATION", "REFERENCES"})
+				table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+				//table.SetAutoMergeCells(true)
+				table.SetBorder(false)
+				table.SetAlignment(tablewriter.ALIGN_LEFT)
+				//table.SetAutoMergeCells(true)
+
+				table.AppendBulk(rows)
+				table.Render()
+
+				return nil
 			case "yaml":
 				data, err := yaml.Marshal(report)
 				if err != nil {
