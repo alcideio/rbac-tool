@@ -279,9 +279,27 @@ func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource st
 				Resource: strings.ToLower(apiResource.Name),
 			}
 
+			//Special Verbs
+			switch verb {
+			case "bind", "escalate":
+				//bind: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update
+				//escalate: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update
+				if gv.Group == "rbac.authorization.k8s.io" &&
+					(possibleNames.Has("clusterroles") || possibleNames.Has("roles")) {
+					//We have a match
+					return r, nil
+				}
+			case "impersonate":
+				if gv.Group == "" &&
+					(possibleNames.Has("users") || possibleNames.Has("groups") || possibleNames.Has("serviceaccounts")) {
+					//We have a match
+					return r, nil
+				}
+			}
+
 			possibleVerbs := sets.NewString(apiResource.Verbs...)
 			if !possibleVerbs.Has(strings.ToLower(verb)) {
-				klog.V(8).Infof("skip - gr=%v is not in [%v]", gr.String(), strings.Join(possibleVerbs.List(), ","))
+				klog.V(8).Infof("skip - gr=%v '%v' is not in [%v]", gr.String(), verb, strings.Join(possibleVerbs.List(), ","))
 				return r, fmt.Errorf("The verb '%s' is not supported by %v", strings.ToLower(verb), r.String())
 			}
 
