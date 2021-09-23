@@ -1,6 +1,8 @@
 package analysis
 
 import (
+	"k8s.io/apimachinery/pkg/util/sets"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,9 +12,24 @@ import (
 	"k8s.io/klog"
 )
 
-func Test__DefultRules(t *testing.T) {
-	for i, rule := range defaultRules {
-		if r, err := newAnalysisRule(&defaultRules[i]); err != nil || r == nil {
+func Test__DefultRulesUUIDs(t *testing.T) {
+	uids := sets.NewString()
+	config := DefaultAnalysisConfig()
+	for i, rule := range config.Rules {
+		if uids.Has(strings.ToLower(rule.Uuid)) {
+			t.Fatalf("Rule '%v' - %v - duplicate UUID", i, rule.Name)
+			t.Fail()
+		}
+		uids.Insert(strings.ToLower(rule.Uuid))
+	}
+}
+
+func Test__VerifyDefultRules(t *testing.T) {
+
+	config := DefaultAnalysisConfig()
+
+	for i, rule := range config.Rules {
+		if r, err := newAnalysisRule(&config.Rules[i]); err != nil || r == nil {
 			t.Fatalf("Rule '%v' - %v - failed to initialize\n%v\n", i, rule.Name, err)
 			t.Fail()
 		}

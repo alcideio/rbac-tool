@@ -1,0 +1,110 @@
+Name: InsightCloudSec
+Description: Rapid7 InsightCloudSec default RBAC analysis rules
+Uuid: 9371719c-1031-468c-91ed-576fdc9e9f59
+# Exclusion expressions are evaluated with subject objects as an input
+# Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+GlobalExclusions:
+  - AddedBy: InsightCloudSec@rapid7.com
+    Comment: "Exclude kube-system from analysis"
+    Disabled: false
+    Expression: |
+      has(subject.namespace) && (subject.namespace == "kube-system")
+    LastModified: "2021-09-22T15:25:01+03:00"
+    SnoozeUntil: 0
+  - AddedBy: InsightCloudSec@rapid7.com
+    Comment: "Exclude system roles from analysis"
+    Disabled: false
+    Expression: |
+      has(subject.name) && subject.name.startsWith('system:')
+    LastModified: "2021-09-22T15:25:01+03:00"
+    SnoozeUntil: 0
+# Analysis Rules
+Rules:
+  - Name: Secret Readers
+    Description: Capture principals that can read secrets
+    References: []
+    Severity: HIGH
+    Uuid: 3c942117-f4ff-423a-83d4-f7d6b75a6b78
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    AnalysisExpr: |
+        subjects.filter(
+            subject, subject.allowedTo.exists(
+              rule,
+              (has(rule.verb)     && rule.verb in ['get', '*'])         && (has(rule.resource)
+              && rule.resource in ['secrets', '*']) &&                         (has(rule.apiGroup)
+              && rule.apiGroup in ['core', '*'])
+            )
+        )
+    Exclusions: []
+
+  - Name: Workload Creators
+    Description: Capture principals that can create workloads of any kind (Deployments, Jobs, ...)
+    Severity: HIGH
+    Uuid: d5f5ea0c-82e9-4289-ba04-b40cc46be017
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
+
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb)
+           && rule.verb in ['create', '*']) &&(has(rule.resource)
+           && rule.resource in ['deployments', 'replicationcontrollers','daemonsets', 'statefulsets', 'replicasets', 'pods', 'jobs','cronjobs', '*'])
+           && (has(rule.apiGroup) && rule.apiGroup in ['core', 'batch','*'])
+        )
+      )
+    Exclusions: []
+
+
+  - Name: Identify Privileges Escalators - via impersonate
+    Description: Capture principals that can escalate privileges through the use of impersonation
+    Severity: CRITICAL
+    Uuid: a845ec84-8fec-4d64-8d8b-7c2b9ca05d63
+    References:
+      - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
+      - https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb)
+           && rule.verb in ['impersonate', '*'])         &&(has(rule.resource)
+           && rule.resource in ['users','groups','serviceaccounts', '*']) &&                       (has(rule.apiGroup)
+           && rule.apiGroup in ['core', '*'])
+        )
+      )
+    Exclusions: []
+
+  - Name: Identify Privileges Escalators - via bind or escalate
+    Description: Capture principals that can escalate privileges through the use of special API verbs 'bind' or 'escalate'
+    Severity: CRITICAL
+    Uuid: 022bc6ea-83e2-4dae-9074-b306b38dc58d
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'" +
+      "\nYou can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
+      - https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+
+    AnalysisExpr: |
+      subjects.filter(
+          subject, subject.allowedTo.exists(
+              rule,
+              (has(rule.verb)     && rule.verb in ['create', '*']) &&
+              (has(rule.resource) && rule.resource in ['deployments', 'replicationcontrollers','daemonsets', 'statefulsets', 'replicasets', 'pods', 'jobs','cronjobs', '*']) &&
+              (has(rule.apiGroup) && rule.apiGroup in ['core', 'batch','*'])
+          )
+      )
+    Exclusions: []
+
+
+
