@@ -10,14 +10,12 @@ GlobalExclusions:
     Expression: |
       has(subject.namespace) && (subject.namespace == "kube-system")
     LastModified: "2021-09-22T15:25:01+03:00"
-    SnoozeUntil: 0
   - AddedBy: InsightCloudSec@rapid7.com
     Comment: "Exclude system roles from analysis"
     Disabled: false
     Expression: |
       has(subject.name) && subject.name.startsWith('system:')
     LastModified: "2021-09-22T15:25:01+03:00"
-    SnoozeUntil: 0
 # Analysis Rules
 Rules:
   - Name: Secret Readers
@@ -37,7 +35,14 @@ Rules:
               && rule.apiGroup in ['core', '*'])
             )
         )
-    Exclusions: []
+    Exclusions:
+      - AddedBy: InsightCloudSec@rapid7.com
+        Comment: "Exclude kube-system from analysis"
+        Disabled: true
+        Expression: |
+          has(subject.namespace) && (subject.namespace == "kube-system")
+        LastModified: "2021-09-22T15:25:01+03:00"
+        ValidBefore: 0
 
   - Name: Workload Creators
     Description: Capture principals that can create workloads of any kind (Deployments, Jobs, ...)

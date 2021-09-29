@@ -260,6 +260,16 @@ func (a *analyzer) initialize() error {
 
 func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*exclusion) (bool, error) {
 	for _, exclusion := range exclusions {
+		if exclusion.exclusion.Disabled {
+			klog.V(7).Infof("Exclusion '%v' is disabled - skipping", exclusion.exclusion.Comment)
+			continue
+		}
+
+		if exclusion.exclusion.ValidBefore != 0 && exclusion.exclusion.ValidBefore < (uint64)(time.Now().Unix()) {
+			klog.V(7).Infof("Exclusion '%v' is no longer valid - skipping", exclusion.exclusion.Comment)
+			continue
+		}
+
 		recommendationOutput, _, err := exclusion.compiledExceptionExpr.Eval(map[string]interface{}{
 			"subject": subject,
 		})

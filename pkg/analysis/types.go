@@ -56,8 +56,8 @@ type Exclusion struct {
 	//When this exclusion had changed -
 	LastModified string
 
-	//Snooze this exception until X - time since epoch
-	SnoozeUntil uint64
+	//exception active after X, where X is a timestamp of seconds since epoch
+	ValidBefore uint64
 
 	//A Google CEL expression exceptions
 	// Input: v1.Subject

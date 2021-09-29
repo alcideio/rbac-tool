@@ -121,7 +121,7 @@ func Test__RuleExclusion(t *testing.T) {
 			Comment:      "Exclude test from analysis",
 			AddedBy:      "tester",
 			LastModified: time.Now().Format(time.RFC3339),
-			SnoozeUntil:  0,
+			ValidBefore:  0,
 			Expression:   `subject.namespace == "test"`,
 		},
 	}
