@@ -28,7 +28,7 @@ func NewCommandAnalysis() *cobra.Command {
 		Args:          cobra.ExactArgs(0),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		Example:       "rbac-tool analyze",
+		Example:       "rbac-tool analyze [--config pkg/analysis/default-rules.yaml]",
 		Short:         "Analyze RBAC permissions and highlight overly permissive principals, risky permissions, etc.",
 		Long: `
 
