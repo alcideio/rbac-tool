@@ -23,8 +23,8 @@ func NewCommandAuditGen() *cobra.Command {
 		ExpandMultipleNamespacesToClusterScoped: true,
 		ExpandMultipleNamesToUnnamed:            true,
 		Annotations: map[string]string{
-			"alcide.io/generated-by": "rbac-tool",
-			"alcide.io/generated":    time.Now().Format(time.RFC3339),
+			"insightcloudsec.rapid7.com/generated-by": "rbac-tool",
+			"insightcloudsec.rapid7.com/generated":    time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -213,7 +213,7 @@ func (a *AuditGenOpts) Run() error {
 
 		opts := auditutil.DefaultGenerateOptions()
 		opts.Annotations = a.Annotations
-		opts.Name = fmt.Sprintf("alcide.io:%v", sanitizeName(username))
+		opts.Name = fmt.Sprintf("insightcloudsec:%v", sanitizeName(username))
 		opts.ExpandMultipleNamespacesToClusterScoped = a.ExpandMultipleNamespacesToClusterScoped
 		opts.ExpandMultipleNamesToUnnamed = a.ExpandMultipleNamesToUnnamed
 

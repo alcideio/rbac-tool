@@ -52,6 +52,7 @@ Usage:
   rbac-tool [command]
 
 Available Commands:
+  analysis        Analyze RBAC permissions and highlight overly permissive principals, risky permissions, etc.
   auditgen        Generate RBAC policy from Kubernetes audit events
   bash-completion Generate bash completion. source < (rbac-too bash-completion)
   generate        Generate Role or ClusterRole and reduce the use of wildcards
@@ -70,6 +71,7 @@ Use "rbac-tool [command] --help" for more information about a command.
 ```
 
 - [The `rbac-tool viz` command](#rbac-tool-viz)
+- [The `rbac-tool analysis` command](#rbac-tool-analysis)
 - [The `rbac-tool lookup` command](#rbac-tool-lookup)
 - [The `rbac-tool who-can` command](#rbac-tool-who-can)
 - [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
@@ -109,6 +111,26 @@ rbac-tool viz --cluster-context myctx
 # Scan and create a PNG image from the graph
 rbac-tool viz --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
 ```
+
+# `rbac-tool analysis`
+
+Analyze RBAC permissions and highlight overly permissive principals, risky permissions.
+The command allows to use a custom analysis rule set, as well as the ability to define custom exceptions (global and per-rule).
+
+The default rule set can be found [here](pkg/analysis/default-rules.yaml)
+
+Examples:
+
+```shell script
+# Analyze the cluster pointed by the kubeconfig context 'myctx' with the internal analysis rule set
+rbac-tool analysis --cluster-context myctx
+```
+
+```shell script
+# Analyze the cluster pointed by kubeconfig with the the provided analysis rule set
+rbac-tool analysis --config myruleset.yaml
+```
+
 
 # `rbac-tool lookup`
 Lookup of the Roles/ClusterRoles used attached to User/ServiceAccount/Group with or without [regex](https://regex101.com/)

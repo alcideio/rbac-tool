@@ -30,6 +30,9 @@ rbac-tool viz --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot 
 # Render Online
 https://dreampuf.github.io/GraphvizOnline
 
+# Analyze cluster RBAC permissions to identify overly permissive roles and principals
+rbac-tool analysis -o table
+
 # Search All Service Accounts That Contains myname
 rbac-tool lookup -e '.*myname.*'
 
@@ -57,4 +60,8 @@ kubectl rbac-tool who-can get secret
 
 # Generate a ClusterRole policy that allows to read everything except secrets and services
 kubectl rbac-tool gen --deny-resources=secrets.,services. --allowed-verbs=get,list
+
+# Analyze cluster RBAC permissions to identify overly permissive roles and principals
+kubectl rbac-tool analysis -o table
+
 ```

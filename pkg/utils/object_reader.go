@@ -96,7 +96,7 @@ func ReadObjectsFromFile(filename string) ([]runtime.Object, error) {
 	}
 
 	if l, err := ReadObjectList(tee); err == nil {
-		klog.V(6).Infof("Loaded from Object List %v resources", filename, len(l))
+		klog.V(6).Infof("Loaded from Object List %v resources", len(l))
 		objs = l
 	} else {
 		klog.V(6).Infof("Couldn't read Object List (%v) from %v ... trying to load as YAML", err, filename)

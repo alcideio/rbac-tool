@@ -18,9 +18,10 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
-      - name: Build
+      - name: Build & Test
         run: |
           make get-bins
+          make test
           make gorelease-snapshot
 
      
