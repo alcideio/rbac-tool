@@ -116,7 +116,7 @@ Rules:
 
   - Name: Storage & Data - Manipluate Cluster Shared Resources
     Description: Capture principals that can manipulate shared cluster storage resources such as StorageClass, Volumes, VolumeClaims
-    Severity: MEDIUM
+    Severity: HIGH
     Uuid: e43fe915-ca58-481d-821b-5481b1d0df02
     Recommendation: |
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
@@ -128,14 +128,13 @@ Rules:
       subjects.filter(
         subject, subject.allowedTo.exists(
           rule,
-          (has(rule.verb) && rule.verb in ['create', 'delete', 'update', '*']) &&
+          (has(rule.verb) && rule.verb in ['create', 'delete', 'update', 'patch', '*']) &&
           (
             (
               has(rule.resource) && rule.resource in ['persistentvolumeclaims', 'persistentvolumes', '*'] &&
               has(rule.apiGroup) && rule.apiGroup in ['core','*']
             ) ||
             (
-              has(rule.resource) && rule.resource in ['storageclasses', '*'] &&
               has(rule.apiGroup) && rule.apiGroup in ['storage.k8s.io','*']
             )
           )
