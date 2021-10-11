@@ -44,8 +44,8 @@ Rules:
         LastModified: "2021-09-22T15:25:01+03:00"
         ValidBefore: 0
 
-  - Name: Workload Creators
-    Description: Capture principals that can create workloads of any kind (Deployments, Jobs, ...)
+  - Name: Workload Creators & Editors
+    Description: Capture principals that can create or modify workloads of any kind (Deployments, Jobs, ...)
     Severity: HIGH
     Uuid: d5f5ea0c-82e9-4289-ba04-b40cc46be017
     Recommendation: |
@@ -59,7 +59,7 @@ Rules:
         subject, subject.allowedTo.exists(
           rule,
           (has(rule.verb)
-           && rule.verb in ['create', '*']) &&(has(rule.resource)
+           && rule.verb in ['create', 'update', 'patch', '*']) &&(has(rule.resource)
            && rule.resource in ['deployments', 'replicationcontrollers','daemonsets', 'statefulsets', 'replicasets', 'pods', 'jobs','cronjobs', '*'])
            && (has(rule.apiGroup) && rule.apiGroup in ['core', 'batch','*'])
         )
@@ -90,7 +90,9 @@ Rules:
     Exclusions: []
 
   - Name: Identify Privileges Escalators - via bind or escalate
-    Description: Capture principals that can escalate privileges through the use of special API verbs 'bind' or 'escalate'
+    Description: |
+      Capture principals that can escalate privileges through the use of special API verbs 'bind' or 'escalate',
+      or those that can manipulate resources that govern permissions (Clusterroles and Roles)
     Severity: CRITICAL
     Uuid: 022bc6ea-83e2-4dae-9074-b306b38dc58d
     Recommendation: |
@@ -104,12 +106,39 @@ Rules:
       subjects.filter(
           subject, subject.allowedTo.exists(
               rule,
-              (has(rule.verb)     && rule.verb in ['create', '*']) &&
-              (has(rule.resource) && rule.resource in ['deployments', 'replicationcontrollers','daemonsets', 'statefulsets', 'replicasets', 'pods', 'jobs','cronjobs', '*']) &&
-              (has(rule.apiGroup) && rule.apiGroup in ['core', 'batch','*'])
+              (has(rule.verb)     && rule.verb in ['bind', 'create', 'update', 'patch', 'escalate', '*']) &&
+              (has(rule.resource) && rule.resource in ['clusterroles', 'roles', '*']) &&
+              (has(rule.apiGroup) && rule.apiGroup in ['rbac.authorization.k8s.io','*'])
           )
       )
     Exclusions: []
 
 
+  - Name: Storage & Data - Manipluate Cluster Shared Resources
+    Description: Capture principals that can manipulate shared cluster storage resources such as StorageClass, Volumes, VolumeClaims
+    Severity: MEDIUM
+    Uuid: e43fe915-ca58-481d-821b-5481b1d0df02
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kubernetes.io/docs/concepts/storage/
 
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'delete', 'update', '*']) &&
+          (
+            (
+              has(rule.resource) && rule.resource in ['persistentvolumeclaims', 'persistentvolumes', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['core','*']
+            ) ||
+            (
+              has(rule.resource) && rule.resource in ['storageclasses', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['storage.k8s.io','*']
+            )
+          )
+        )
+      )
+    Exclusions: []
