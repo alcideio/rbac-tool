@@ -101,7 +101,7 @@ Rules:
   - Name: Identify Privileges Escalators - via bind or escalate
     Description: |
       Capture principals that can escalate privileges through the use of special API verbs 'bind' or 'escalate',
-      or those that can manipulate resources that govern permissions (Clusterroles and Roles)
+      or those that can manipulate resources that govern permissions (ClusterRoles and Roles)
     Severity: CRITICAL
     Uuid: 022bc6ea-83e2-4dae-9074-b306b38dc58d
     Recommendation: |
@@ -126,7 +126,7 @@ Rules:
     Exclusions: []
 
 
-  - Name: Storage & Data - Manipluate Cluster Shared Resources
+  - Name: Storage & Data - Manipulate Cluster Shared Resources
     Description: Capture principals that can manipulate shared cluster storage resources such as StorageClass, Volumes, VolumeClaims
     Severity: HIGH
     Uuid: e43fe915-ca58-481d-821b-5481b1d0df02
@@ -157,7 +157,7 @@ Rules:
       )
     Exclusions: []
 
-  - Name: Networking - Manipluate Networking and Network Access related resources
+  - Name: Networking - Manipulate Networking and Network Access related resources
     Description: |
       Capture principals that can manipulate shared cluster networking services such as
       Services, Ingresses, NetworkPolicies, Endpoints and EndpointSlices.
