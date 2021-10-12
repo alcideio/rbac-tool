@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/alcideio/rbac-tool/pkg/rbac"
-	"github.com/kr/pretty"
 	v1 "k8s.io/api/rbac/v1"
 	"k8s.io/klog"
 )
@@ -70,7 +69,7 @@ func Test__Analyzer(t *testing.T) {
 		t.Fail()
 	}
 
-	t.Logf("%v", pretty.Sprint(report))
+	//t.Logf("%v", pretty.Sprint(report))
 }
 
 func Test__GlobalExclusion(t *testing.T) {
@@ -107,7 +106,7 @@ func Test__GlobalExclusion(t *testing.T) {
 		t.Fail()
 	}
 
-	t.Logf("%v", pretty.Sprint(report))
+	//t.Logf("%v", pretty.Sprint(report))
 }
 
 func Test__RuleExclusion(t *testing.T) {
@@ -155,5 +154,5 @@ func Test__RuleExclusion(t *testing.T) {
 		t.Fail()
 	}
 
-	t.Logf("%v", pretty.Sprint(report))
+	//t.Logf("%v", pretty.Sprint(report))
 }
