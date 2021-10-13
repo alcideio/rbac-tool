@@ -26,6 +26,9 @@ Rules:
     Recommendation: |
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
       "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating resources - use plural form (secrets not secret)
     AnalysisExpr: |
         subjects.filter(
             subject, subject.allowedTo.exists(
@@ -54,6 +57,9 @@ Rules:
     References:
       - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
 
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
         subject, subject.allowedTo.exists(
@@ -77,6 +83,9 @@ Rules:
     Recommendation: |
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
       "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
         subject, subject.allowedTo.exists(
@@ -92,7 +101,7 @@ Rules:
   - Name: Identify Privileges Escalators - via bind or escalate
     Description: |
       Capture principals that can escalate privileges through the use of special API verbs 'bind' or 'escalate',
-      or those that can manipulate resources that govern permissions (Clusterroles and Roles)
+      or those that can manipulate resources that govern permissions (ClusterRoles and Roles)
     Severity: CRITICAL
     Uuid: 022bc6ea-83e2-4dae-9074-b306b38dc58d
     Recommendation: |
@@ -102,6 +111,9 @@ Rules:
       - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
       - https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
           subject, subject.allowedTo.exists(
@@ -114,7 +126,7 @@ Rules:
     Exclusions: []
 
 
-  - Name: Storage & Data - Manipluate Cluster Shared Resources
+  - Name: Storage & Data - Manipulate Cluster Shared Resources
     Description: Capture principals that can manipulate shared cluster storage resources such as StorageClass, Volumes, VolumeClaims
     Severity: HIGH
     Uuid: e43fe915-ca58-481d-821b-5481b1d0df02
@@ -124,6 +136,9 @@ Rules:
     References:
       - https://kubernetes.io/docs/concepts/storage/
 
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
         subject, subject.allowedTo.exists(
@@ -137,6 +152,101 @@ Rules:
             (
               has(rule.apiGroup) && rule.apiGroup in ['storage.k8s.io','*']
             )
+          )
+        )
+      )
+    Exclusions: []
+
+  - Name: Networking - Manipulate Networking and Network Access related resources
+    Description: |
+      Capture principals that can manipulate shared cluster networking services such as
+      Services, Ingresses, NetworkPolicies, Endpoints and EndpointSlices.
+    Severity: HIGH
+    Uuid: 24392e04-77dd-4721-8aa8-6fc8f6f7005c
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kubernetes.io/docs/concepts/services-networking/
+      - https://kubernetes.io/docs/concepts/services-networking/ingress/
+      - https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/
+      - https://kubernetes.io/docs/concepts/services-networking/network-policies/
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'delete', 'update', 'patch', '*']) &&
+          (
+            (
+              has(rule.resource) && rule.resource in ['networkpolicies', 'ingresses', 'ingressclasses','*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['networking.k8s.io', 'extensions', '*']
+            ) ||
+            (
+              has(rule.resource) && rule.resource in ['services', 'endpoints', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['core','*']
+            ) ||
+            (
+               has(rule.resource) && rule.resource in ['endpointslices', '*'] &&
+               has(rule.apiGroup) && rule.apiGroup in ['discovery.k8s.io','*']
+            )
+          )
+        )
+      )
+    Exclusions: []
+
+  - Name: Installing or Modifying Admission Controllers
+    Description: Capture principals that can install/update Kubernetes admission controllers of any kind
+    Severity: CRITICAL
+    Uuid: e08e762e-50d6-4091-a37a-c4dd01d274a9
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/
+      - https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/
+      - https://kubernetes.io/docs/reference/kubernetes-api/extend-resources/
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'update', 'patch', '*']) &&
+          (
+              has(rule.resource) && rule.resource in ['mutatingwebhookconfigurations', 'validatingwebhookconfigurations', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['admissionregistration.k8s.io','*']
+          )
+        )
+      )
+    Exclusions: []
+
+  - Name: Installing or Modifying Cluster Extensions (CRDs)
+    Description: Capture principals that can install/delete/update Kubernetes Custom Resources
+    Severity: MEDIUM
+    Uuid: 773d2782-8d26-4aea-b6dc-719b9072729a
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'update', 'patch', 'delete', '*']) &&
+          (
+              has(rule.resource) && rule.resource in ['customresourcedefinitions', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['apiextensions.k8s.io','*']
           )
         )
       )
