@@ -114,6 +114,8 @@ func Test__RuleExclusion(t *testing.T) {
 
 	config := DefaultAnalysisConfig()
 
+	config.Rules = config.Rules[0:1]
+
 	config.Rules[0].Exclusions = []Exclusion{
 		{
 			Disabled:     false,
