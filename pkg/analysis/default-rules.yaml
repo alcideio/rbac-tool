@@ -16,6 +16,15 @@ GlobalExclusions:
     Expression: |
       has(subject.name) && subject.name.startsWith('system:')
     LastModified: "2021-09-22T15:25:01+03:00"
+  - AddedBy: InsightCloudSec@rapid7.com
+    Comment: "Exclude gatekeeper-system/gatekeeper-admin from analysis"
+    Disabled: false
+    Expression: |
+      has(subject.namespace) && (subject.namespace == "gatekeeper-system") &&
+      has(subject.name) && (subject.name == "gatekeeper-admin")
+    LastModified: "2021-09-22T15:25:01+03:00"
+    ValidBefore: 0
+
 # Analysis Rules
 Rules:
   - Name: Secret Readers
@@ -251,3 +260,38 @@ Rules:
         )
       )
     Exclusions: []
+
+  - Name: Open Policy Agent (OPA) GateKeeper Administration
+    Description: Capture principals that have adminsitrative priviliges and can manage OPA GateKeeper shared resources resources
+    Severity: HIGH
+    Uuid: 9d3d62c2-81a5-439a-bc51-9b74f8124822
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://open-policy-agent.github.io/gatekeeper/website/docs/constrainttemplates
+      - https://open-policy-agent.github.io/gatekeeper/website/docs/mutation
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'update', 'patch', 'delete', '*']) &&
+          (
+              has(rule.resource) && rule.resource in ['constrainttemplates', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['templates.gatekeeper.sh','*']
+          ) ||
+          (
+              has(rule.resource) && rule.resource in ['assign', 'assignmetadata', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['mutations.gatekeeper.sh','*']
+          ) ||
+          (
+              has(rule.resource) && rule.resource in ['configs', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['config.gatekeeper.sh','*']
+          )
+        )
+      )
+    Exclusions: [] # gatekeeper-system/gatekeeper-admin excluded in global exceptions
