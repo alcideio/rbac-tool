@@ -8,11 +8,18 @@ import (
 	"k8s.io/klog"
 )
 
+type PolicyRule struct {
+	v1.PolicyRule
+
+	//Specify the Roles or ClusterRoles this rule originated from
+	OriginatedFrom []v1.RoleRef
+}
+
 type SubjectPermissions struct {
 	Subject v1.Subject
 
 	//Rules Per Namespace ... "" means cluster-wide
-	Rules map[string][]v1.PolicyRule
+	Rules map[string][]PolicyRule
 }
 
 func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
@@ -47,18 +54,24 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 				if !exist {
 					subPerms = &SubjectPermissions{
 						Subject: subject,
-						Rules:   map[string][]v1.PolicyRule{},
+						Rules:   map[string][]PolicyRule{},
 					}
 				}
 
 				rules, exist := subPerms.Rules[binding.Namespace]
 				if !exist {
-					rules = []v1.PolicyRule{}
+					rules = []PolicyRule{}
 				}
 
-				//klog.V(6).Infof("%+v --add-- %v %v", subject, len(rules), len(role.Rules))
+				roleRules := make([]PolicyRule, len(role.Rules))
+				for i, _ := range role.Rules {
+					roleRules[i].PolicyRule = role.Rules[i]
+					roleRules[i].OriginatedFrom = []v1.RoleRef{binding.RoleRef}
+				}
 
-				rules = append(rules, role.Rules...)
+				klog.V(6).Infof("%+v --add-- %v %v %+v", subject, len(rules), len(role.Rules), roleRules)
+
+				rules = append(rules, roleRules...)
 				subPerms.Rules[binding.Namespace] = rules
 				subjects[sub] = subPerms
 			}
@@ -107,6 +120,9 @@ type NamespacedPolicyRule struct {
 	// NonResourceURLs is a set of partial urls that a user should have access to.  *s are allowed, but only as the full, final step in the path
 	// Since non-resource URLs are not namespaced, this field is only applicable for ClusterRoles referenced from a ClusterRoleBinding.
 	NonResourceURLs []string `json:"nonResourceURLs,omitempty"`
+
+	//The Role/ClusterRole rule references
+	OriginatedFrom []v1.RoleRef `json:"originatedFrom,omitempty"`
 }
 
 type SubjectPolicyList struct {
@@ -152,6 +168,7 @@ func NewSubjectPermissionsList(policies []SubjectPermissions) []SubjectPolicyLis
 									Resource:        resource,
 									ResourceNames:   rule.ResourceNames,
 									NonResourceURLs: rule.NonResourceURLs,
+									OriginatedFrom:  rule.OriginatedFrom,
 								}
 
 								nsrules = append(nsrules, subjectPolicy)
@@ -164,6 +181,7 @@ func NewSubjectPermissionsList(policies []SubjectPermissions) []SubjectPolicyLis
 							Namespace:       namespace,
 							Verb:            verb,
 							NonResourceURLs: rule.NonResourceURLs,
+							OriginatedFrom:  rule.OriginatedFrom,
 						}
 
 						nsrules = append(nsrules, subjectPolicy)
