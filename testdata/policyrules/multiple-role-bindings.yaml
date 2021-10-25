@@ -1,0 +1,79 @@
+#
+# Install:
+#  kubectl apply -f testdata/policyrules/multiple-role-bindings.yaml
+#
+# Run:
+#  bin/rbac-tool policy-rules -e the-test-user  | grep the-test-user
+#
+# Expect:
+#
+#   ServiceAccount | the-test-user | get   | policyrules | core      | *       |             |                | Roles>>policyrules/some-rules
+#   ServiceAccount | the-test-user | get   | policyrules | core      | *       |             |                | Roles>>policyrules/more-rules
+#   ServiceAccount | the-test-user | get   | policyrules | core      | secrets | some-secret |                | Roles>>policyrules/some-rules
+#   ServiceAccount | the-test-user | get   | policyrules | core      | secrets |             |                | Roles>>policyrules/more-rules
+#   ServiceAccount | the-test-user | list  | policyrules | core      | secrets | some-secret |                | Roles>>policyrules/some-rules
+#   ServiceAccount | the-test-user | watch | policyrules | core      | secrets | some-secret |                | Roles>>policyrules/some-rules
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: policyrules
+  name: some-rules
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["secrets"]
+    resourceNames: ["some-secret"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["*"]
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: policyrules
+  name: more-rules
+rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["secrets"]
+    verbs: ["get"]
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["*"]
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: some-rules-binding
+  namespace: policyrules
+subjects:
+  - kind: ServiceAccount
+    name: the-test-user # "name" is case sensitive
+    namespace: policyrules
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: some-rules # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: more-rules-binding
+  namespace: policyrules
+subjects:
+  - kind: ServiceAccount
+    name: the-test-user # "name" is case sensitive
+    namespace: policyrules
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: more-rules # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io

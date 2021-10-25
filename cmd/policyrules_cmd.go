@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -13,6 +14,8 @@ import (
 	"github.com/alcideio/rbac-tool/pkg/rbac"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	v1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 func NewCommandPolicyRules() *cobra.Command {
@@ -117,21 +120,26 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 							allowedTo.Resource,
 							strings.Join(allowedTo.ResourceNames, ","),
 							strings.Join(allowedTo.NonResourceURLs, ","),
+							renderOriginatedFromColumn(allowedTo.Namespace, allowedTo.OriginatedFrom),
 						}
 						rows = append(rows, row)
 					}
 				}
 
 				sort.Slice(rows, func(i, j int) bool {
-					if strings.Compare(rows[i][0], rows[j][0]) == 0 {
-						return (strings.Compare(rows[i][1], rows[j][1]) < 0)
+
+					for c := range [6]int{} {
+						if strings.Compare(rows[i][c], rows[j][c]) == 0 {
+							continue
+						}
+						return (strings.Compare(rows[i][c], rows[j][c]) < 0)
 					}
 
-					return (strings.Compare(rows[i][0], rows[j][0]) < 0)
+					return true
 				})
 
 				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"TYPE", "SUBJECT", "VERBS", "NAMESPACE", "API GROUP", "KIND", "NAMES", "NonResourceURI"})
+				table.SetHeader([]string{"TYPE", "SUBJECT", "VERBS", "NAMESPACE", "API GROUP", "KIND", "NAMES", "NonResourceURI", "ORIGINATED FROM"})
 				table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 				table.SetBorder(false)
 				table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -174,4 +182,28 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 	flags.StringVarP(&regex, "regex", "e", "", "Specify whether run the lookup using a regex match")
 	flags.BoolVarP(&inverse, "not", "n", false, "Inverse the regex matching. Use to search for users that do not match '^system:.*'")
 	return cmd
+}
+
+func renderOriginatedFromColumn(ns string, list []v1.RoleRef) string {
+	roles := sets.NewString()
+	clusterRoles := sets.NewString()
+	s := bytes.NewBufferString("")
+
+	for _, ref := range list {
+		if ref.Kind == "ClusterRole" {
+			clusterRoles.Insert(ref.Name)
+		} else {
+			roles.Insert(fmt.Sprintf("%v/%v ", ns, ref.Name))
+		}
+	}
+
+	if clusterRoles.Len() > 0 {
+		s.WriteString(fmt.Sprintf("ClusterRoles>>%v", strings.Join(clusterRoles.List(), ",")))
+	}
+
+	if roles.Len() > 0 {
+		s.WriteString(fmt.Sprintf("Roles>>%v", strings.Join(roles.List(), ",")))
+	}
+
+	return s.String()
 }
