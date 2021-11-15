@@ -170,7 +170,7 @@ func generateRules(clusterContext string, denyResources sets.String, includeGrou
 
 		var newPolicyRule *rbacv1.PolicyRule
 
-		if len(resourceList) == 0 {
+		if len(resourceList) == 0 || uniqueVerbs.Len() == 0 {
 			continue
 		}
 
