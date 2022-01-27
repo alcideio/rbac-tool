@@ -40,7 +40,7 @@ Rules:
     # In the expression when evaluating resources - use plural form (secrets not secret)
     AnalysisExpr: |
         subjects.filter(
-            subject, subject.allowedTo.exists(
+            subject, has(subject.allowedTo) && subject.allowedTo.exists(
               rule,
               (has(rule.verb)     && rule.verb in ['get', '*'])         && (has(rule.resource)
               && rule.resource in ['secrets', '*']) &&                         (has(rule.apiGroup)
@@ -71,7 +71,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb)
            && rule.verb in ['create', 'update', 'patch', '*']) &&(has(rule.resource)
@@ -97,7 +97,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb)
            && rule.verb in ['impersonate', '*'])         &&(has(rule.resource)
@@ -125,7 +125,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-          subject, subject.allowedTo.exists(
+          subject, has(subject.allowedTo) && subject.allowedTo.exists(
               rule,
               (has(rule.verb)     && rule.verb in ['bind', 'create', 'update', 'patch', 'escalate', '*']) &&
               (has(rule.resource) && rule.resource in ['clusterroles', 'roles', '*']) &&
@@ -150,7 +150,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb) && rule.verb in ['create', 'delete', 'update', 'patch', '*']) &&
           (
@@ -186,7 +186,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb) && rule.verb in ['create', 'delete', 'update', 'patch', '*']) &&
           (
@@ -224,7 +224,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb) && rule.verb in ['create', 'update', 'patch', '*']) &&
           (
@@ -250,7 +250,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb) && rule.verb in ['create', 'update', 'patch', 'delete', '*']) &&
           (
@@ -277,7 +277,7 @@ Rules:
     # In the expression when evaluating rule.resource - use plural form (secrets not secret)
     AnalysisExpr: |
       subjects.filter(
-        subject, subject.allowedTo.exists(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
           rule,
           (has(rule.verb) && rule.verb in ['create', 'update', 'patch', 'delete', '*']) &&
           (
