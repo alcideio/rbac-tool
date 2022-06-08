@@ -1,13 +1,14 @@
 package rbac
 
 import (
+	"strings"
+
 	"github.com/alcideio/rbac-tool/pkg/kube"
 	v1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
-	"strings"
 )
 
 type Permissions struct {
@@ -99,7 +100,7 @@ func (p *Permissions) populateClusterRoleBindings(bindings []rbacv1.ClusterRoleB
 	}
 }
 
-func NewPermissionsFromCluster(client *kube.KubeClient) (*Permissions, error) {
+func NewPermissionsFromCluster(client *kube.KubeClient, collectPsp bool) (*Permissions, error) {
 	permissions := &Permissions{}
 
 	permissions.ServiceAccounts = make(map[string]map[string]v1.ServiceAccount)
@@ -107,12 +108,14 @@ func NewPermissionsFromCluster(client *kube.KubeClient) (*Permissions, error) {
 	permissions.RoleBindings = make(map[string]map[string]rbacv1.RoleBinding)
 	permissions.PodSecurityPolicies = make(map[string]policy.PodSecurityPolicy)
 
-	psps, err := client.ListPodSecurityPolicies()
-	if err != nil {
-		return nil, err
-	}
+	if collectPsp {
+		psps, err := client.ListPodSecurityPolicies()
+		if err != nil {
+			return nil, err
+		}
 
-	permissions.populatePodSecurityPolicies(psps)
+		permissions.populatePodSecurityPolicies(psps)
+	}
 
 	sas, err := client.ListServiceAccounts(v1.NamespaceAll)
 	if err != nil {

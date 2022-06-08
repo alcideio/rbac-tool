@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"sigs.k8s.io/yaml"
 	"sort"
 	"strings"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/alcideio/rbac-tool/pkg/kube"
 	"github.com/alcideio/rbac-tool/pkg/rbac"
@@ -74,7 +75,7 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 				return fmt.Errorf("Failed to create kubernetes client - %v", err)
 			}
 
-			perms, err := rbac.NewPermissionsFromCluster(client)
+			perms, err := rbac.NewPermissionsFromCluster(client, true)
 			if err != nil {
 				return err
 			}

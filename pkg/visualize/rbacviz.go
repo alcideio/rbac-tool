@@ -69,7 +69,7 @@ func (r *RbacViz) initialize(opts *Opts) error {
 			return fmt.Errorf("Failed to create kubernetes client - %v", err)
 		}
 
-		perms, err := rbac.NewPermissionsFromCluster(client)
+		perms, err := rbac.NewPermissionsFromCluster(client, opts.ShowPSP)
 		if err != nil {
 			return err
 		}

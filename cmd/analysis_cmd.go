@@ -57,7 +57,7 @@ rbac-tool analyze
 				return fmt.Errorf("Failed to create kubernetes client - %v", err)
 			}
 
-			perms, err := rbac.NewPermissionsFromCluster(client)
+			perms, err := rbac.NewPermissionsFromCluster(client, true)
 			if err != nil {
 				return err
 			}

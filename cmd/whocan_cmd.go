@@ -143,7 +143,7 @@ rbac-tool who-can get secret/some-secret
 				return err
 			}
 
-			perms, err := rbac.NewPermissionsFromCluster(client)
+			perms, err := rbac.NewPermissionsFromCluster(client, true)
 			if err != nil {
 				return err
 			}
