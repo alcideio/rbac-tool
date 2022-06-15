@@ -317,15 +317,18 @@ func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource st
 }
 
 func (kubeClient *KubeClient) pspSupported() bool {
-	verbs, _ := kubeClient.GetVerbsForResource(policy.GroupName, "PodSecurityPolicy")
+	verbs, _ := kubeClient.GetVerbsForResource(policy.GroupName, "podsecuritypolicies")
 
 	if verbs != nil && verbs.Len() > 0 {
+		klog.V(6).Info("psp supported")
 		return true
 	}
 
 	if verbs == nil || verbs.Len() == 0 {
+		klog.V(6).Info("psp NOT supported")
 		return false
 	}
 
+	klog.V(6).Info("psp sNOT upported")
 	return false
 }
