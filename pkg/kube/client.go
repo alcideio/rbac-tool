@@ -232,7 +232,12 @@ func (kubeClient *KubeClient) ListClusterRoleBindings() ([]rbacv1.ClusterRoleBin
 	return objs.Items, nil
 }
 
+// ListPodSecurityPolicies Deprecated
 func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPolicy, error) {
+	if !kubeClient.pspSupported() {
+		return nil, nil
+	}
+
 	objs, err := kubeClient.Client.PolicyV1beta1().PodSecurityPolicies().List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
@@ -309,4 +314,18 @@ func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource st
 	}
 
 	return schema.GroupResource{}, fmt.Errorf("Failed find a matching API resource")
+}
+
+func (kubeClient *KubeClient) pspSupported() bool {
+	verbs, _ := kubeClient.GetVerbsForResource(policy.GroupName, "PodSecurityPolicy")
+
+	if verbs != nil && verbs.Len() > 0 {
+		return true
+	}
+
+	if verbs == nil || verbs.Len() == 0 {
+		return false
+	}
+
+	return false
 }
