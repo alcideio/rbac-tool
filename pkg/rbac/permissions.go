@@ -1,13 +1,15 @@
 package rbac
 
 import (
-	"github.com/alcideio/rbac-tool/pkg/kube"
+	"strings"
+
 	v1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
-	"strings"
+
+	"github.com/alcideio/rbac-tool/pkg/kube"
 )
 
 type Permissions struct {
@@ -109,7 +111,8 @@ func NewPermissionsFromCluster(client *kube.KubeClient) (*Permissions, error) {
 
 	psps, err := client.ListPodSecurityPolicies()
 	if err != nil {
-		return nil, err
+		klog.V(6).Infof("Failed to obtain PodSecurityPolicies - %v", err)
+		psps = nil
 	}
 
 	permissions.populatePodSecurityPolicies(psps)

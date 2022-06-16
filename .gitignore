@@ -19,6 +19,8 @@ dist/*
 bin/*
 
 .idea/
+.vscode/
+
 
 rbac.dot
 rbac.html
