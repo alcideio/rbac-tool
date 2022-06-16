@@ -38,6 +38,10 @@ builds:
         goarch: 386
       - goos: linux
         goarch: 386
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64        
     hooks:
       post: /bin/bash hack/goreleaser-postbuild.sh {{ .ProjectName }}_{{ .Os }}_{{ .Arch }} {{ .Os }}
 
