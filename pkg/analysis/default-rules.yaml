@@ -207,6 +207,32 @@ Rules:
       )
     Exclusions: []
 
+  - Name: Networking - Manipulate Gateway API Resources
+    Description: |
+      Capture principals that can manipulate shared cluster networking services such as
+      Gateway Classes, Gateways, HTTPRoutes, TLSRoutes, etc,.
+    Severity: HIGH
+    Uuid: 337c205f-7479-4a31-9057-03c6c8d2f80e
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://gateway-api.sigs.k8s.io/
+
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'delete', 'update', 'patch', '*']) &&
+          (has(rule.resource) && rule.resource in ['gatewayclasses', 'gateways', 'httproutes', 'tcproutes', 'tlsroutes', 'udproutes', '*']) &&
+          (has(rule.apiGroup) && rule.apiGroup in ['gateway.networking.k8s.io', '*'])        )
+      )
+    Exclusions: []
+
   - Name: Installing or Modifying Admission Controllers
     Description: Capture principals that can install/update Kubernetes admission controllers of any kind
     Severity: CRITICAL
