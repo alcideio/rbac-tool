@@ -1,6 +1,6 @@
 #
 # Install:
-# kubectl apply -f testdata/whocan/secret-reader.yaml
+# kubectl apply -f testdata/whocan/gatewat-api-operator.yaml
 #
 # Run:
 # bin/rbac-tool who-can get gateways | grep gateway-network-operator
