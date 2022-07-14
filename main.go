@@ -20,12 +20,12 @@ func RbacGenCmd() *cobra.Command {
 
 	var genBashCompletionCmd = &cobra.Command{
 		Use:   "bash-completion",
-		Short: "Generate bash completion. source < (rbac-too bash-completion)",
-		Long:  "Generate bash completion. source < (rbac-too bash-completion)",
+		Short: "Generate bash completion. source <(rbac-tool bash-completion)",
+		Long:  "Generate bash completion. source <(rbac-tool bash-completion)",
 		Run: func(cmd *cobra.Command, args []string) {
 			out := new(bytes.Buffer)
 			_ = rootCmd.GenBashCompletion(out)
-			println(out.String())
+			fmt.Println(out.String())
 		},
 	}
 
