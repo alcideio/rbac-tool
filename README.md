@@ -54,7 +54,7 @@ Usage:
 Available Commands:
   analysis        Analyze RBAC permissions and highlight overly permissive principals, risky permissions, etc.
   auditgen        Generate RBAC policy from Kubernetes audit events
-  bash-completion Generate bash completion. source < (rbac-too bash-completion)
+  bash-completion Generate bash completion. source <(rbac-tool bash-completion)
   generate        Generate Role or ClusterRole and reduce the use of wildcards
   help            Help about any command
   lookup          RBAC Lookup by subject (user/group/serviceaccount) name
