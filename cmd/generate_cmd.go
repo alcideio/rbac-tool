@@ -118,8 +118,9 @@ func generateRules(clusterContext string, denyResources sets.String, includeGrou
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
 
 	//processedGroups := sets.NewString()
+	_, apiResourceListArray, err := kubeClient.Client.DiscoveryClient.ServerGroupsAndResources()
 
-	for _, apiGroup := range kubeClient.ServerPreferredResources {
+	for _, apiGroup := range apiResourceListArray {
 
 		// rbac rules only look at API group names, not name + version
 		gv, err := schema.ParseGroupVersion(apiGroup.GroupVersion)
