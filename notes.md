@@ -47,6 +47,9 @@ rbac-tool auditgen -f testdata  | rbac-tool viz   -f -
 
 # Generate a `ClusterRole` policy that allows to read everything **except** *secrets* and *services*
 rbac-tool  gen  --deny-resources=secrets.,services. --allowed-verbs=get,list
+
+# Generate a ClusterRole with all the available permissions for core and apps api groups
+rbac-tool show  --for-groups=,apps
 ```
 
 ## kubectl rbac-tool ...
@@ -63,5 +66,8 @@ kubectl rbac-tool gen --deny-resources=secrets.,services. --allowed-verbs=get,li
 
 # Analyze cluster RBAC permissions to identify overly permissive roles and principals
 kubectl rbac-tool analysis -o table
+
+# Generate a ClusterRole with all the available permissions for core and apps api groups
+kubectl rbac-tool show  --for-groups=,apps
 
 ```
