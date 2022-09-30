@@ -50,47 +50,22 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 `,
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
+			kubeClient, err := kube.NewClient(clusterContext)
+			if err != nil {
+				return fmt.Errorf("Failed to create kubernetes client - %v", err)
+			}
 
-			computedPolicyRules, err := generateRules(clusterContext, sets.NewString(denyResources...), sets.NewString(allowedGroups...), sets.NewString(allowedVerb...))
+			computedPolicyRules, err := generateRules(kubeClient.ServerPreferredResources, sets.NewString(denyResources...), sets.NewString(allowedGroups...), sets.NewString(allowedVerb...))
 			if err != nil {
 				return err
 			}
 
-			var obj runtime.Object
-
-			if generateKind == "ClusterRole" {
-				obj = &rbacv1.ClusterRole{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "ClusterRole",
-						APIVersion: "rbac.authorization.k8s.io/v1",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "custom-cluster-role",
-					},
-					Rules: computedPolicyRules,
-				}
-			} else {
-				obj = &rbacv1.Role{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "Role",
-						APIVersion: "rbac.authorization.k8s.io/v1",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "custom-role",
-						Namespace: "mynamespace",
-					},
-					Rules: computedPolicyRules,
-				}
-			}
-
-			serializer := k8sJson.NewSerializerWithOptions(k8sJson.DefaultMetaFactory, nil, nil, k8sJson.SerializerOptions{Yaml: true, Pretty: true, Strict: true})
-			var writer = bytes.NewBufferString("")
-			err = serializer.Encode(obj, writer)
+			obj, err := generateRole(generateKind, computedPolicyRules)
 			if err != nil {
 				return err
 			}
 
-			println(writer.String())
+			println(obj)
 
 			return nil
 		},
@@ -108,18 +83,52 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 	return cmd
 }
 
-func generateRules(clusterContext string, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
-	errs := []error{}
-	kubeClient, err := kube.NewClient(clusterContext)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create kubernetes client - %v", err)
+func generateRole(generateKind string, rules []rbacv1.PolicyRule) (string, error) {
+	var obj runtime.Object
+
+	if generateKind == "ClusterRole" {
+		obj = &rbacv1.ClusterRole{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "ClusterRole",
+				APIVersion: "rbac.authorization.k8s.io/v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "custom-cluster-role",
+			},
+			Rules: rules,
+		}
+	} else {
+		obj = &rbacv1.Role{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Role",
+				APIVersion: "rbac.authorization.k8s.io/v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "custom-role",
+				Namespace: "mynamespace",
+			},
+			Rules: rules,
+		}
 	}
+
+	serializer := k8sJson.NewSerializerWithOptions(k8sJson.DefaultMetaFactory, nil, nil, k8sJson.SerializerOptions{Yaml: true, Pretty: true, Strict: true})
+	var writer = bytes.NewBufferString("")
+	err := serializer.Encode(obj, writer)
+	if err != nil {
+		return "", err
+	}
+
+	return writer.String(), nil
+}
+
+func generateRules(apiresourceList []*metav1.APIResourceList, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+	errs := []error{}
 
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
 
 	//processedGroups := sets.NewString()
 
-	for _, apiGroup := range kubeClient.ServerPreferredResources {
+	for _, apiGroup := range apiresourceList {
 
 		// rbac rules only look at API group names, not name + version
 		gv, err := schema.ParseGroupVersion(apiGroup.GroupVersion)

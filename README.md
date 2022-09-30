@@ -59,6 +59,7 @@ Available Commands:
   help            Help about any command
   lookup          RBAC Lookup by subject (user/group/serviceaccount) name
   policy-rules    RBAC List Policy Rules For subject (user/group/serviceaccount) name
+  show            Generate ClusterRole with all available permissions from the target cluster
   version         Print rbac-tool version
   visualize       A RBAC visualizer
   who-can         Shows which subjects have RBAC permissions to perform an action
@@ -77,6 +78,7 @@ Use "rbac-tool [command] --help" for more information about a command.
 - [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
 - [The `rbac-tool auditgen` command](#rbac-tool-auditgen)
 - [The `rbac-tool gen` command](#rbac-tool-gen)
+- [The `rbac-tool show` command](#rbac-tool-show)
 - [Command Line Reference](#command-line-reference)
 - [Contributing](#contributing)
 
@@ -111,6 +113,21 @@ rbac-tool viz --cluster-context myctx
 # Scan and create a PNG image from the graph
 rbac-tool viz --outformat dot --exclude-namespaces=soemns && cat rbac.dot | dot -Tpng > rbac.png && google-chrome rbac.png
 ```
+
+
+# `rbac-tool show`
+
+Generate sample ClusterRole with all available permissions from the target cluster.
+
+rbac-tool read from the Kubernetes discovery API the available API Groups and resources,
+and based on the command line options, generate an explicit ClusterRole with available resource permissions.
+Examples:
+
+```shell script
+# Generate a ClusterRole with all the available permissions for core and apps api groups
+rbac-tool show  --for-groups=,apps
+```
+
 
 # `rbac-tool analysis`
 
