@@ -344,3 +344,28 @@ Rules:
           (has(rule.apiGroup) && rule.apiGroup in ['', '*'])        )
       )
     Exclusions: [] #
+
+  - Name: Create Ephemeral Containers in Running Pods
+    Description: |
+      Capture principals with permissions to create ephemeral containers in running Pods.
+      Permissions to create ephemeral container provides the ability to execute code on other pods as well as executing code with excessive process permissions (by setting securityContext field) which can potentially lead to container escape to the hosting node.
+    Severity: MEDIUM
+    Uuid: D43B8BDC-B0D3-4FFA-B320-95F516B514B3
+    Recommendation: |      
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kubernetes.io/docs/concepts/workloads/pods/ephemeral-containers/
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['patch', 'update', '*']) &&
+          (has(rule.resource) && rule.resource in ['pods/ephemeralcontainers', '*']) &&
+          (has(rule.apiGroup) && rule.apiGroup in ['', '*'])        )
+      )
+    Exclusions: []
