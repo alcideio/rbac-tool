@@ -380,7 +380,7 @@ Rules:
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
       "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
     References:
-      - https://kubernetes.io/docs/concepts/workloads/pods/ephemeral-containers/
+      - https://kubernetes.io/docs/tasks/debug/debug-application/get-shell-running-container/
 
     # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
     # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
