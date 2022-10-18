@@ -288,7 +288,7 @@ Rules:
     Exclusions: []
 
   - Name: Open Policy Agent (OPA) GateKeeper Administration
-    Description: Capture principals that have adminsitrative priviliges and can manage OPA GateKeeper shared resources resources
+    Description: Capture principals that have administrative privileges and can manage OPA GateKeeper shared resources resources
     Severity: HIGH
     Uuid: 9d3d62c2-81a5-439a-bc51-9b74f8124822
     Recommendation: |
@@ -321,3 +321,26 @@ Rules:
         )
       )
     Exclusions: [] # gatekeeper-system/gatekeeper-admin excluded in global exceptions
+
+  - Name: Create Node Proxy
+    Description: Capture principals with permissions to create node proxies, which provides direct access to Kubelet APIs and can be used for privileges escalation.
+    Severity: CRITICAL
+    Uuid: EB43D06A-8534-43EB-8360-117D0AB06808
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://blog.aquasec.com/privilege-escalation-kubernetes-rbac
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', '*']) &&
+          (has(rule.resource) && rule.resource in ['nodes/proxy', '*']) &&
+          (has(rule.apiGroup) && rule.apiGroup in ['', '*'])        )
+      )
+    Exclusions: [] #
