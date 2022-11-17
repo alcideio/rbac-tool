@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/kylelemons/godebug/pretty"
+	"k8s.io/klog"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -48,16 +50,28 @@ rbac-tool show  --for-groups=,apps
 
 			_, allResources, err := kubeClient.Client.Discovery().ServerGroupsAndResources()
 			if err != nil {
-				return fmt.Errorf("Failed to create kubernetes client - %v", err)
+				return fmt.Errorf("failed to read ServerGroupsAndResources - %v", err)
 			}
 
-			//println(pretty.Sprint(allResources))
-			//
+			preferredResources, err := kubeClient.Client.Discovery().ServerPreferredResources()
+			if err != nil {
+				return fmt.Errorf("failed to read ServerPreferredResources - %v", err)
+			}
+
+			klog.V(7).Infof(">>>>> preferred Resources \n%v\n>>>>>", pretty.Sprint(preferredResources))
+
+			preferredApiGroups := sets.NewString()
+			for _, apiGroup := range preferredResources {
+				klog.V(5).Infof("Add preferred ApiGroups: [%v]", strings.ToLower(apiGroup.GroupVersion))
+				preferredApiGroups.Insert(strings.ToLower(apiGroup.GroupVersion))
+			}
+
+			klog.V(7).Infof(">>>>> All Resources \n%v\n>>>>>", pretty.Sprint(allResources))
 			//if true {
 			//	return nil
 			//}
 
-			computedPolicyRules, err := generateRulesWithSubResources(allResources, sets.NewString(), sets.NewString(forGroups...), sets.NewString(withVerb...))
+			computedPolicyRules, err := generateRulesWithSubResources(allResources, preferredApiGroups, sets.NewString(), sets.NewString(forGroups...), sets.NewString(withVerb...))
 			if err != nil {
 				return err
 			}
@@ -82,14 +96,19 @@ rbac-tool show  --for-groups=,apps
 	return cmd
 }
 
-func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, preferredApiGroups sets.String, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
 	errs := []error{}
 
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
 
-	//processedGroups := sets.NewString()
+	processedResources := sets.NewString()
 
 	for _, apiGroup := range apiresourceList {
+
+		if !preferredApiGroups.Has(strings.ToLower(apiGroup.GroupVersion)) {
+			klog.V(5).Infof("Skip ApiGroups: [%v]", strings.ToLower(apiGroup.GroupVersion))
+			continue
+		}
 
 		// rbac rules only look at API group names, not name + version
 		gv, err := schema.ParseGroupVersion(apiGroup.GroupVersion)
@@ -103,11 +122,6 @@ func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, de
 			continue
 		}
 
-		//Skip API Group versions (RBAC ignore API version)
-		//if processedGroups.Has(gv.Group) {
-		//	continue
-		//}
-
 		//Skip API Group entirely if *.APIGroup was specified
 		if denyResources.Has(fmt.Sprintf("*.%v", strings.ToLower(gv.Group))) {
 			continue
@@ -120,6 +134,17 @@ func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, de
 			if denyResources.Has(fmt.Sprintf("%v.%v", strings.ToLower(kind.Name), strings.ToLower(gv.Group))) {
 				continue
 			}
+
+			apiResouceGVK := schema.GroupVersionResource{Group: kind.Group, Version: kind.Version, Resource: kind.Name}
+
+			//Skip API Group versions (RBAC ignore API version)
+			if processedResources.Has(apiResouceGVK.String()) {
+				klog.V(5).Infof("Skp ApiGroups: [%v]", apiResouceGVK.String())
+				continue
+			}
+
+			klog.V(5).Infof("Add ApiGroups: [%v]", apiResouceGVK.String())
+			processedResources.Insert(apiResouceGVK.String())
 
 			var newPolicyRule *rbacv1.PolicyRule
 			var uniqueVerbs sets.String

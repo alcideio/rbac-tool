@@ -79,7 +79,7 @@ test: ##@Test run tests
 	go test -v github.com/alcideio/rbac-tool/pkg/...
 
 create-kind-cluster:  ##@Test creatte KIND cluster
-	kind create cluster --image kindest/node:v1.18.2 --name rbak
+	kind create cluster --image kindest/node:v1.23.13 --name rbak
 
 delete-kind-cluster:  ##@Test delete KIND cluster
 	kind delete cluster --name rbak
