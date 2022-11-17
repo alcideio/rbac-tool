@@ -23,6 +23,7 @@ func NewCommandGenerateShowPermissions() *cobra.Command {
 	generateKind := "ClusterRole"
 	forGroups := []string{"*"}
 	withVerb := []string{"*"}
+	scope := "cluster"
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -43,6 +44,9 @@ rbac-tool show  --for-groups=,apps
 `,
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
+			if scope != "all" && scope != "cluster" && scope != "namespaced" {
+				return fmt.Errorf("--scope must be one of: cluster, namespaced or all")
+			}
 			kubeClient, err := kube.NewClient(clusterContext)
 			if err != nil {
 				return fmt.Errorf("Failed to create kubernetes client - %v", err)
@@ -67,15 +71,15 @@ rbac-tool show  --for-groups=,apps
 			}
 
 			klog.V(7).Infof(">>>>> All Resources \n%v\n>>>>>", pretty.Sprint(allResources))
-			//if true {
-			//	return nil
-			//}
 
-			computedPolicyRules, err := generateRulesWithSubResources(allResources, preferredApiGroups, sets.NewString(), sets.NewString(forGroups...), sets.NewString(withVerb...))
+			computedPolicyRules, err := generateRulesWithSubResources(allResources, scope, preferredApiGroups, sets.NewString(), sets.NewString(forGroups...), sets.NewString(withVerb...))
 			if err != nil {
 				return err
 			}
 
+			if scope == "namespaced" {
+				generateKind = "Role"
+			}
 			obj, err := generateRole(generateKind, computedPolicyRules)
 			if err != nil {
 				return err
@@ -90,13 +94,14 @@ rbac-tool show  --for-groups=,apps
 	flags := cmd.Flags()
 
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
+	flags.StringVarP(&scope, "scope", "", "all", "Filter by resource scope. Valid values are: 'cluster' | 'namespaced' | 'all' ")
 	flags.StringSliceVar(&forGroups, "for-groups", []string{"*"}, "Comma separated list of API groups we would like to show the permissions")
 	flags.StringSliceVar(&withVerb, "with-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
 
 	return cmd
 }
 
-func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, preferredApiGroups sets.String, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, scope string, preferredApiGroups sets.String, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
 	errs := []error{}
 
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
@@ -136,6 +141,16 @@ func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, pr
 			}
 
 			apiResouceGVK := schema.GroupVersionResource{Group: kind.Group, Version: kind.Version, Resource: kind.Name}
+
+			if scope == "cluster" && kind.Namespaced {
+				klog.V(5).Infof("Exclude namespaced resources: [%v]", apiResouceGVK.String())
+				continue
+			}
+
+			if scope == "namespaced" && !kind.Namespaced {
+				klog.V(5).Infof("Exclude cluster scoped resources: [%v]", apiResouceGVK.String())
+				continue
+			}
 
 			//Skip API Group versions (RBAC ignore API version)
 			if processedResources.Has(apiResouceGVK.String()) {
