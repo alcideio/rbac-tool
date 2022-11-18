@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/kylelemons/godebug/pretty"
 	"k8s.io/klog"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -24,6 +25,8 @@ func NewCommandGenerateShowPermissions() *cobra.Command {
 	forGroups := []string{"*"}
 	withVerb := []string{"*"}
 	scope := "cluster"
+	denyVerb := []string{}
+	denyResource := []string{}
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -72,7 +75,7 @@ rbac-tool show  --for-groups=,apps
 
 			klog.V(7).Infof(">>>>> All Resources \n%v\n>>>>>", pretty.Sprint(allResources))
 
-			computedPolicyRules, err := generateRulesWithSubResources(allResources, scope, preferredApiGroups, sets.NewString(), sets.NewString(forGroups...), sets.NewString(withVerb...))
+			computedPolicyRules, err := generateRulesWithSubResources(allResources, scope, preferredApiGroups, sets.NewString(denyResource...), sets.NewString(forGroups...), sets.NewString(withVerb...), sets.NewString(denyVerb...))
 			if err != nil {
 				return err
 			}
@@ -97,11 +100,13 @@ rbac-tool show  --for-groups=,apps
 	flags.StringVarP(&scope, "scope", "", "all", "Filter by resource scope. Valid values are: 'cluster' | 'namespaced' | 'all' ")
 	flags.StringSliceVar(&forGroups, "for-groups", []string{"*"}, "Comma separated list of API groups we would like to show the permissions")
 	flags.StringSliceVar(&withVerb, "with-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
+	flags.StringSliceVar(&denyVerb, "without-verbs", []string{""}, "Comma separated list of verbs to exclude.")
+	flags.StringSliceVar(&denyResource, "without-resources", []string{""}, "Comma separated list of resources to exclude. Syntax: <resourceName>.<apiGroup>")
 
 	return cmd
 }
 
-func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, scope string, preferredApiGroups sets.String, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, scope string, preferredApiGroups sets.String, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String, deniedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
 	errs := []error{}
 
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
@@ -167,7 +172,9 @@ func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, sc
 			uniqueVerbs = sets.NewString()
 			for _, verb := range kind.Verbs {
 				if allowedVerbs.Has(verb) || allowedVerbs.Has(rbacv1.VerbAll) {
-					uniqueVerbs.Insert(verb)
+					if !deniedVerbs.Has(verb) {
+						uniqueVerbs.Insert(verb)
+					}
 				}
 			}
 
