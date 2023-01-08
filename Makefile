@@ -62,11 +62,11 @@ get-bins: get-release-bins ##@build Download UPX
 	rm -Rf upx-${UPX_VERSION}-amd64_linux*
 
 get-release-bins: ##@build Download goreleaser
-	mkdir -p $(CURDIR)/bin || echo "dir already exist" &&\
+	mkdir -p $(CURDIR)/bin/goreleaser_install || echo "dir already exist" &&\
 	cd $(CURDIR)/bin &&\
-	wget https://github.com/goreleaser/goreleaser/releases/download/v${GORELEASER_VERSION}/goreleaser_Linux_x86_64.tar.gz && \
-	tar xvf goreleaser_Linux_x86_64.tar.gz &&\
-	rm -Rf goreleaser_Linux_x86_64*
+	curl -sfL https://goreleaser.com/static/run | TMPDIR=$(CURDIR)/bin/goreleaser_install VERSION=v${GORELEASER_VERSION} DISTRIBUTION=oss bash -x -s -- check &&\
+	mv $(CURDIR)/bin/goreleaser_install/goreleaser $(CURDIR)/bin/goreleaser &&\
+	rm -Rf $(CURDIR)/bin/goreleaser_install
 
 
 
