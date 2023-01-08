@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -65,7 +66,7 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 				return err
 			}
 
-			println(obj)
+			fmt.Fprintln(os.Stdout, obj)
 
 			return nil
 		},

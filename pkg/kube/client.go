@@ -329,6 +329,6 @@ func (kubeClient *KubeClient) pspSupported() bool {
 		return false
 	}
 
-	klog.V(6).Info("psp sNOT upported")
+	klog.V(6).Info("psp NOT supported")
 	return false
 }

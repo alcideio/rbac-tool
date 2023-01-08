@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -15,7 +16,7 @@ func NewCommandVersion() *cobra.Command {
 		Use:   "version",
 		Short: "Print rbac-tool version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Version: " + Version + "\nCommit: " + Commit)
+			fmt.Fprintln(os.Stdout, "Version: "+Version+"\nCommit: "+Commit)
 		},
 	}
 }
