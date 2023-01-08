@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/kylelemons/godebug/pretty"
@@ -42,6 +43,9 @@ Examples:
 
 # Generate a ClusterRole with all the available permissions for core and apps api groups
 rbac-tool show  --for-groups=,apps
+
+# Generate a ClusterRole with all the available permissions for core and apps api groups
+rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,deletecollection
 
 
 `,
@@ -88,7 +92,7 @@ rbac-tool show  --for-groups=,apps
 				return err
 			}
 
-			println(obj)
+			fmt.Fprintln(os.Stdout, obj)
 
 			return nil
 		},

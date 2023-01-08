@@ -155,7 +155,7 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 				if err != nil {
 					return fmt.Errorf("Processing error - %v", err)
 				}
-				fmt.Println(string(data))
+				fmt.Fprintln(os.Stdout, string(data))
 				return nil
 
 			case "json":
@@ -166,7 +166,7 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 					return fmt.Errorf("Processing error - %v", err)
 				}
 
-				fmt.Println(string(data))
+				fmt.Fprintln(os.Stdout, string(data))
 				return nil
 
 			default:
