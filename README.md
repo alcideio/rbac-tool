@@ -63,7 +63,8 @@ Available Commands:
   version         Print rbac-tool version
   visualize       A RBAC visualizer
   who-can         Shows which subjects have RBAC permissions to perform an action
-
+  whoami          Shows the subject for the current context with which one authenticates with the cluster
+  
 Flags:
   -h, --help      help for rbac-tool
   -v, --v Level   number for the log level verbosity
@@ -79,6 +80,7 @@ Use "rbac-tool [command] --help" for more information about a command.
 - [The `rbac-tool auditgen` command](#rbac-tool-auditgen)
 - [The `rbac-tool gen` command](#rbac-tool-gen)
 - [The `rbac-tool show` command](#rbac-tool-show)
+- [The `rbac-tool whoami` command](#rbac-tool-whoami)
 - [Command Line Reference](#command-line-reference)
 - [Contributing](#contributing)
 
@@ -259,6 +261,16 @@ Examples would be simplest way to describe how `rbac-tool gen` can help:
 *  Generate a `Role` policy that allows create,update,get,list  (read/write) everything **except** *statefulsets*
 
 `rbac-tool` generate RBAC `Role` or RBAC `ClusterRole` resource while reducing the use of wildcards, and support **deny** semantics for specific Kubernetes clusters.
+
+# `rbac-tool whoami`
+
+Shows the subject for the current context with which one authenticates with the cluster.
+
+Examples:
+
+```shell script
+rbac-tool whoami --cluster-context myctx
+```
 
 ### How `rbac-tool gen` works?
 

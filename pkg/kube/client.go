@@ -3,11 +3,14 @@ package kube
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
+	authn "k8s.io/api/authentication/v1"
 	v1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	k8sserrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/errors"
@@ -230,6 +233,32 @@ func (kubeClient *KubeClient) ListClusterRoleBindings() ([]rbacv1.ClusterRoleBin
 	}
 
 	return objs.Items, nil
+}
+
+func (kubeClient *KubeClient) TokenReview(token string) (authn.UserInfo, error) {
+	tokenReview, err := kubeClient.Client.AuthenticationV1().TokenReviews().Create(
+		context.Background(),
+		&authn.TokenReview{
+			Spec: authn.TokenReviewSpec{Token: token},
+		},
+		metav1.CreateOptions{},
+	)
+
+	if err != nil {
+		if k8sserrs.IsForbidden(err) {
+			//definitely bad ... but at least give some sense to the user
+			usernameFromErrorRE := regexp.MustCompile(`^.* User "(.*)" cannot .*$`)
+			username := usernameFromErrorRE.ReplaceAllString(err.Error(), "$1")
+			return authn.UserInfo{Username: username}, nil
+		}
+		return authn.UserInfo{}, err
+	}
+
+	if tokenReview.Status.Error != "" {
+		return authn.UserInfo{}, fmt.Errorf(tokenReview.Status.Error)
+	}
+
+	return tokenReview.Status.User, nil
 }
 
 // ListPodSecurityPolicies Deprecated
