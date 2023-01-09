@@ -32,7 +32,7 @@ func (t *tokenExtractor) RoundTrip(req *http.Request) (*http.Response, error) {
 		t.token = strings.ReplaceAll(header, "Bearer ", "")
 		klog.V(5).Infof("extracted token successfully")
 	} else {
-		klog.V(5).Infof("could not extract token '%v'", req.Header)
+		klog.V(5).Infof("could not extract token from header")
 	}
 
 	return t.rountTripper.RoundTrip(req)
