@@ -22,6 +22,9 @@ $ kubectl krew install rbac-tool
 # Show which users/groups/service accounts are allowed to read secrets in the cluster pointed by kubeconfig
 rbac-tool who-can get secrets
 
+# Show the subject information of the the one authenticates against the current cluster context
+rbac-tool whoami
+
 # Scan the cluster pointed by the kubeconfig context 'myctx'
 rbac-tool viz --cluster-context myctx
 
@@ -50,6 +53,7 @@ rbac-tool  gen  --deny-resources=secrets.,services. --allowed-verbs=get,list
 
 # Generate a ClusterRole with all the available permissions for core and apps api groups
 rbac-tool show  --for-groups=,apps
+
 ```
 
 ## kubectl rbac-tool ...
@@ -70,4 +74,6 @@ kubectl rbac-tool analysis -o table
 # Generate a ClusterRole with all the available permissions for core and apps api groups
 kubectl rbac-tool show  --for-groups=,apps
 
+# Show the subject information of the the one authenticates against the current cluster context
+kubectl rbac-tool whoami
 ```
