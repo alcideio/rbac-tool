@@ -10,6 +10,11 @@ if [ $1 == "rbac-tool_darwin_arm64" ]; then
   exit 0
 fi
 
+if [ $1 == "rbac-tool_darwin_amd64" ]; then
+  echo "Skipping Running UPX on Darwin amd64 - $1"
+  exit 0
+fi
+
 echo "Running UPX - $1"
 find dist/$1* -type f -executable -exec ./bin/upx {} +
 

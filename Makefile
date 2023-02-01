@@ -18,10 +18,10 @@ GOX           = $(GOPATH)/bin/gox
 GOIMPORTS     = $(GOPATH)/bin/goimports
 ARCH          = $(shell uname -p)
 
-UPX_VERSION := 3.96
+UPX_VERSION := 4.0.2
 UPX := $(CURDIR)/rbac-tool/bin/upx
 
-GORELEASER_VERSION := 1.9.2
+GORELEASER_VERSION := 1.15.0
 GORELEASER := $(CURDIR)/bin/goreleaser
 
 # go option
@@ -97,10 +97,10 @@ delete-kind-cluster:  ##@Test delete KIND cluster
 #
 .PHONY: gorelease
 gorelease: ##@build Generate All release artifacts
-	GOPATH=~ USER=alcidebuilder $(GORELEASER) -f $(CURDIR)/.goreleaser.yml --rm-dist --release-notes=notes.md
+	GOPATH=~ USER=alcidebuilder $(GORELEASER) release -f $(CURDIR)/.goreleaser.yml --clean --release-notes=notes.md
 
 gorelease-snapshot: ##@build Generate All release artifacts
-	GOPATH=~ USER=alcidebuilder  GORELEASER_CURRENT_TAG=v0.0.0 $(GORELEASER) -f $(CURDIR)/.goreleaser.yml --rm-dist --skip-publish --snapshot
+	GOPATH=~ USER=alcidebuilder  GORELEASER_CURRENT_TAG=v0.0.0 $(GORELEASER) release -f $(CURDIR)/.goreleaser.yml --clean --skip-publish --snapshot
 
 HELP_FUN = \
          %help; \
