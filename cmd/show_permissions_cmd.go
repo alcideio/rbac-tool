@@ -149,7 +149,7 @@ func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, sc
 				continue
 			}
 
-			apiResouceGVK := schema.GroupVersionResource{Group: kind.Group, Version: kind.Version, Resource: kind.Name}
+			apiResouceGVK := schema.GroupVersionResource{Group: gv.Group, Version: kind.Version, Resource: kind.Name}
 
 			if scope == "cluster" && kind.Namespaced {
 				klog.V(5).Infof("Exclude namespaced resources: [%v]", apiResouceGVK.String())
