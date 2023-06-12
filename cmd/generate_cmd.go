@@ -56,7 +56,7 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 				return fmt.Errorf("Failed to create kubernetes client - %v", err)
 			}
 
-			computedPolicyRules, err := generateRules(kubeClient.ServerPreferredResources, sets.NewString(denyResources...), sets.NewString(allowedGroups...), sets.NewString(allowedVerb...))
+			computedPolicyRules, err := generateRules(generateKind, kubeClient.ServerPreferredResources, sets.NewString(denyResources...), sets.NewString(allowedGroups...), sets.NewString(allowedVerb...))
 			if err != nil {
 				return err
 			}
@@ -122,7 +122,8 @@ func generateRole(generateKind string, rules []rbacv1.PolicyRule) (string, error
 	return writer.String(), nil
 }
 
-func generateRules(apiresourceList []*metav1.APIResourceList, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+func generateRules(generateKind string, apiresourceList []*metav1.APIResourceList, denyResources sets.String, includeGroups sets.String, allowedVerbs sets.String) ([]rbacv1.PolicyRule, error) {
+	isRole := generateKind == "Role"
 	errs := []error{}
 
 	computedPolicyRules := make([]rbacv1.PolicyRule, 0)
@@ -159,6 +160,11 @@ func generateRules(apiresourceList []*metav1.APIResourceList, denyResources sets
 		uniqueVerbs := sets.NewString()
 
 		for _, kind := range apiGroup.APIResources {
+
+			if isRole && !kind.Namespaced {
+				//When generating role - non-namespaced resources are not relevant
+				continue
+			}
 
 			if denyResources.Has(fmt.Sprintf("%v.%v", strings.ToLower(kind.Name), strings.ToLower(gv.Group))) {
 				continue
