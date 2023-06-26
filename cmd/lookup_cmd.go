@@ -21,9 +21,9 @@ func NewCommandLookup() *cobra.Command {
 
 	// Support overrides
 	cmd := &cobra.Command{
-		Use:     "lookup",
+		Use:		 "lookup",
 		Aliases: []string{"look"},
-		Short:   "RBAC Lookup by subject (user/group/serviceaccount) name",
+		Short:	 "RBAC Lookup by subject (user/group/serviceaccount) name",
 		Long: `
 A Kubernetes RBAC lookup of Roles/ClusterRoles used by a given User/ServiceAccount/Group
 
@@ -72,7 +72,7 @@ rbac-tool lookup -ne '^system:.*'
 			}
 
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"SUBJECT", "SUBJECT TYPE", "SCOPE", "NAMESPACE", "ROLE"})
+			table.SetHeader([]string{"SUBJECT", "SUBJECT TYPE", "SCOPE", "NAMESPACE", "ROLE", "BINDING TYPE"})
 			table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 			table.SetBorder(false)
 			table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -83,12 +83,12 @@ rbac-tool lookup -ne '^system:.*'
 					for _, subject := range binding.Subjects {
 						match := re.MatchString(subject.Name)
 
-						//  match    inverse
-						//  -----------------
-						//  true     true   --> skip
-						//  true     false  --> keep
-						//  false    true   --> keep
-						//  false    false  --> skip
+						//	match		 inverse
+						//	-----------------
+						//	true   true  --> skip
+						//	true   false  --> keep
+						//	false  true  --> keep
+						//	false  false  --> skip
 						if match {
 							if inverse {
 								continue
@@ -116,18 +116,28 @@ rbac-tool lookup -ne '^system:.*'
 							row := []string{subject.Name, subject.Kind, "ClusterRole", binding.Namespace, binding.RoleRef.Name}
 							rows = append(rows, row)
 						} else {
-							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name}
+							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name, "RoleBinding"}
 							rows = append(rows, row)
 						}
 					}
 				}
 			}
+			
+			// Add ClusterRoleBindings
+			for _, clusterBinding := range perms.ClusterRoleBindings {
+				// Append a new row field for the binding type
+				row := []string{"", "", "ClusterRole", "", clusterBinding.RoleRef.Name, "ClusterRoleBinding"}
+				rows = append(rows, row)
+			}
 
+		// Modify the sorting logic to consider the new "BINDING TYPE" field
 			sort.Slice(rows, func(i, j int) bool {
 				if strings.Compare(rows[i][0], rows[j][0]) == 0 {
+					if strings.Compare(rows[i][3], rows[j][3]) == 0 {
+						return (strings.Compare(rows[i][5], rows[j][5]) < 0)
+					}
 					return (strings.Compare(rows[i][3], rows[j][3]) < 0)
 				}
-
 				return (strings.Compare(rows[i][0], rows[j][0]) < 0)
 			})
 
