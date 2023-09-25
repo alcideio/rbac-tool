@@ -14,7 +14,7 @@ GlobalExclusions:
     Comment: "Exclude system roles from analysis"
     Disabled: false
     Expression: |
-      has(subject.name) && subject.name.startsWith('system:')
+      has(subject.name) && subject.name.startsWith('system:') && (subject.name != system:serviceaccounts)
     LastModified: "2021-09-22T15:25:01+03:00"
   - AddedBy: InsightCloudSec@rapid7.com
     Comment: "Exclude gatekeeper-system/gatekeeper-admin from analysis"
