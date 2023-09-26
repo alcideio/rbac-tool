@@ -64,7 +64,7 @@ get-bins: get-release-bins ##@build Download UPX
 get-release-bins: ##@build Download goreleaser
 	mkdir -p $(CURDIR)/bin/goreleaser_install || echo "dir already exist" &&\
 	cd $(CURDIR)/bin &&\
-	curl -sfL https://goreleaser.com/static/run | TMPDIR=$(CURDIR)/bin/goreleaser_install VERSION=v${GORELEASER_VERSION} DISTRIBUTION=oss bash -x -s -- check &&\
+	$(CURDIR)/hack/goreleaser-download.sh ${GORELEASER_VERSION} $(CURDIR)/bin/goreleaser_install &&\
 	mv $(CURDIR)/bin/goreleaser_install/goreleaser $(CURDIR)/bin/goreleaser &&\
 	rm -Rf $(CURDIR)/bin/goreleaser_install
 
