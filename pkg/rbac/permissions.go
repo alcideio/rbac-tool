@@ -21,6 +21,7 @@ type Permissions struct {
 	Roles        map[string]map[string]rbacv1.Role
 	RoleBindings map[string]map[string]rbacv1.RoleBinding
 
+	//deprecated
 	PodSecurityPolicies map[string]policy.PodSecurityPolicy
 }
 
