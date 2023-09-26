@@ -52,7 +52,7 @@ Rules:
         Comment: "Exclude kube-system from analysis"
         Disabled: true
         Expression: |
-          has(subject.namespace) && (subject.namespace == "kube-system")
+          has(subject.name) && subject.name.startsWith('system:') && (subject.name != "system:serviceaccounts")
         LastModified: "2021-09-22T15:25:01+03:00"
         ValidBefore: 0
 
