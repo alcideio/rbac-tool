@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/kylelemons/godebug/pretty"
 	v1 "k8s.io/api/rbac/v1"
 	"k8s.io/klog"
 )
@@ -36,15 +37,20 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 					ns = ""
 				}
 
+				if subject.Namespace == "" && subject.Kind == v1.ServiceAccountKind && binding.Namespace != "" {
+					//If for some reason the namespace is abscent from the subject for ServiceAccount - fill it
+					subject.Namespace = binding.Namespace
+				}
+
 				roles, exist := perms.Roles[ns]
 				if !exist {
-					klog.V(6).Infof("%+v didn't find roles for namespace '%v'", binding, ns)
+					klog.V(6).Infof("[%v] %+v didn't find roles for namespace '%v'", subject.String(), binding, ns)
 					continue
 				}
 
 				role, exist := roles[binding.RoleRef.Name]
 				if !exist {
-					klog.V(6).Infof("%+v didn't find role '%v' in '%v'", binding, binding.RoleRef.Name, ns)
+					klog.V(6).Infof("[%v] %+v didn't find role '%v' in '%v'", subject.String(), binding, binding.RoleRef.Name, ns)
 					continue
 				}
 
@@ -56,6 +62,8 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 						Subject: subject,
 						Rules:   map[string][]PolicyRule{},
 					}
+
+					klog.V(6).Infof("[%v] %+v -- CREATE --", subject.String(), subject)
 				}
 
 				rules, exist := subPerms.Rules[binding.Namespace]
@@ -69,7 +77,7 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 					roleRules[i].OriginatedFrom = []v1.RoleRef{binding.RoleRef}
 				}
 
-				klog.V(6).Infof("%+v --add-- %v %v %+v", subject, len(rules), len(role.Rules), roleRules)
+				klog.V(6).Infof("[%v] %+v -- UPDATE -- %v %v %+v", subject.String(), subject, len(rules), len(role.Rules), roleRules)
 
 				rules = append(rules, roleRules...)
 				subPerms.Rules[binding.Namespace] = rules
@@ -82,6 +90,8 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 	for _, v := range subjects {
 		res = append(res, *v)
 	}
+
+	klog.V(10).Infof("%v", pretty.Sprint(res))
 
 	return res
 }
