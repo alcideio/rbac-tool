@@ -3,6 +3,7 @@ package audit
 import (
 	"fmt"
 	"io"
+
 	"net/url"
 	"reflect"
 	"sort"
@@ -15,11 +16,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apiserver/pkg/apis/audit"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
-	auditv1alpha1 "k8s.io/apiserver/pkg/apis/audit/v1alpha1"
-	auditv1beta1 "k8s.io/apiserver/pkg/apis/audit/v1beta1"
 	"k8s.io/apiserver/pkg/authentication/serviceaccount"
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/apiserver/pkg/authorization/authorizer"
+	validation_helper "k8s.io/component-helpers/auth/rbac/validation"
 	rbacv1helper "k8s.io/kubernetes/pkg/apis/rbac/v1"
 	"k8s.io/kubernetes/pkg/registry/rbac/validation"
 )
@@ -46,7 +46,7 @@ func attributesToResourceRule(request authorizer.AttributesRecord, options Gener
 func compactRules(rules []rbacv1.PolicyRule) []rbacv1.PolicyRule {
 	breakdownRules := []rbacv1.PolicyRule{}
 	for _, rule := range rules {
-		breakdownRules = append(breakdownRules, validation.BreakdownRule(rule)...)
+		breakdownRules = append(breakdownRules, validation_helper.BreakdownRule(rule)...)
 	}
 	compactRules, err := validation.CompactRules(breakdownRules)
 	if err != nil {
@@ -188,12 +188,7 @@ func init() {
 	if err := auditv1.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
-	if err := auditv1beta1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := auditv1alpha1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
+
 	if err := audit.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
