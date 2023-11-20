@@ -64,7 +64,7 @@ Rules:
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
       "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
     References:
-      - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
+      - https://certitude.consulting/blog/en/kubernetes-rbac-security-pitfalls/
 
     # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
     # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
@@ -87,7 +87,7 @@ Rules:
     Severity: CRITICAL
     Uuid: a845ec84-8fec-4d64-8d8b-7c2b9ca05d63
     References:
-      - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
+      - https://certitude.consulting/blog/en/kubernetes-rbac-security-pitfalls/
       - https://kubernetes.io/docs/reference/access-authn-authz/rbac/
     Recommendation: |
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
@@ -117,7 +117,7 @@ Rules:
       "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'" +
       "\nYou can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
     References:
-      - https://www.impidio.com/blog/kubernetes-rbac-security-pitfalls
+      - https://certitude.consulting/blog/en/kubernetes-rbac-security-pitfalls/
       - https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 
     # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
