@@ -22,11 +22,14 @@ import (
 func NewCommandGenerateClusterRole() *cobra.Command {
 
 	clusterContext := ""
+	name := "custom-cluster-reader"
+	namespace := "myappnamespace"
 	generateKind := ""
 	allowedGroups := []string{}
 	//expandGroups := []string{}
 	allowedVerb := []string{}
 	denyResources := []string{}
+	annotations := map[string]string{}
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -61,7 +64,7 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 				return err
 			}
 
-			obj, err := generateRole(generateKind, computedPolicyRules)
+			obj, err := generateRole(generateKind, computedPolicyRules, name, namespace, annotations)
 			if err != nil {
 				return err
 			}
@@ -76,15 +79,18 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 
 	flags.StringVarP(&generateKind, "generated-type", "t", "ClusterRole", "Role or ClusterRole")
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
+	flags.StringVar(&name, "name", "", "Name of Role/ClusterRole")
+	flags.StringVarP(&namespace, "namespace", "n", "", "Namespace of Role/ClusterRole")
 	//flags.StringSliceVarP(&expandGroups, "expand-groups", "g", []string{""},  "Comma separated list of API groups we would like to list all resource kinds rather than using wild cards '*'")
 	flags.StringSliceVar(&allowedGroups, "allowed-groups", []string{"*"}, "Comma separated list of API groups we would like to allow '*'")
 	flags.StringSliceVar(&allowedVerb, "allowed-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
 	flags.StringSliceVar(&denyResources, "deny-resources", []string{""}, "Comma separated list of resource.group - for example secret. to deny secret (core group) access")
+	flags.StringToStringVar(&annotations, "annotations", map[string]string{}, "Custom annotations")
 
 	return cmd
 }
 
-func generateRole(generateKind string, rules []rbacv1.PolicyRule) (string, error) {
+func generateRole(generateKind string, rules []rbacv1.PolicyRule, name string, namespace string, annotations map[string]string) (string, error) {
 	var obj runtime.Object
 
 	if generateKind == "ClusterRole" {
@@ -94,7 +100,7 @@ func generateRole(generateKind string, rules []rbacv1.PolicyRule) (string, error
 				APIVersion: "rbac.authorization.k8s.io/v1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "custom-cluster-role",
+				Name: name,
 			},
 			Rules: rules,
 		}
@@ -105,8 +111,9 @@ func generateRole(generateKind string, rules []rbacv1.PolicyRule) (string, error
 				APIVersion: "rbac.authorization.k8s.io/v1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "custom-role",
-				Namespace: "mynamespace",
+				Name:        name,
+				Namespace:   namespace,
+				Annotations: annotations,
 			},
 			Rules: rules,
 		}
