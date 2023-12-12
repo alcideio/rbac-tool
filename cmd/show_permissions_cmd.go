@@ -87,10 +87,12 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 				return err
 			}
 
+			mergedPolicyRoles := mergePolicyRules(computedPolicyRules)
+
 			if scope == "namespaced" {
 				generateKind = "Role"
 			}
-			obj, err := generateRole(generateKind, computedPolicyRules, name, namespace, annotations)
+			obj, err := generateRole(generateKind, mergedPolicyRoles, name, namespace, annotations)
 			if err != nil {
 				return err
 			}
@@ -202,4 +204,45 @@ func generateRulesWithSubResources(apiresourceList []*metav1.APIResourceList, sc
 	}
 
 	return computedPolicyRules, errors.NewAggregate(errs)
+}
+
+type RuleAggregate struct {
+	Verbs     sets.String
+	Resources sets.String
+}
+
+func mergePolicyRules(rules []rbacv1.PolicyRule) []rbacv1.PolicyRule {
+
+	var mergedRules []rbacv1.PolicyRule
+
+	groupedRules := make(map[string]*RuleAggregate)
+
+	for _, rule := range rules {
+		apiGroup := rule.APIGroups[0]
+		if apiGroup == "" {
+			apiGroup = "v1"
+		}
+
+		if _, exists := groupedRules[apiGroup]; !exists {
+			groupedRules[apiGroup] = &RuleAggregate{
+				Resources: sets.NewString(),
+				Verbs:     sets.NewString(),
+			}
+		}
+		groupedRules[apiGroup].Resources.Insert(rule.Resources...)
+		groupedRules[apiGroup].Verbs.Insert(rule.Verbs...)
+	}
+
+	for apiGroup, aggregates := range groupedRules {
+		if apiGroup == "v1" {
+			apiGroup = ""
+		}
+		newRule := rbacv1.PolicyRule{
+			APIGroups: []string{apiGroup},
+			Resources: aggregates.Resources.List(),
+			Verbs:     aggregates.Verbs.List(),
+		}
+		mergedRules = append(mergedRules, newRule)
+	}
+	return mergedRules
 }
