@@ -101,6 +101,7 @@ func generateRole(generateKind string, rules []rbacv1.PolicyRule, name string, n
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
+				Annotations: annotations,
 			},
 			Rules: rules,
 		}
