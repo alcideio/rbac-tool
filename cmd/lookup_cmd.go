@@ -72,7 +72,7 @@ rbac-tool lookup -ne '^system:.*'
 			}
 
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"SUBJECT", "SUBJECT TYPE", "SCOPE", "NAMESPACE", "ROLE"})
+			table.SetHeader([]string{"SUBJECT", "SUBJECT TYPE", "SCOPE", "NAMESPACE", "ROLE", "BINDING"})
 			table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 			table.SetBorder(false)
 			table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -110,13 +110,13 @@ rbac-tool lookup -ne '^system:.*'
 						}
 
 						if binding.Namespace == "" {
-							row := []string{subject.Name, subject.Kind, "ClusterRole", "", binding.RoleRef.Name}
+							row := []string{subject.Name, subject.Kind, "ClusterRole", "", binding.RoleRef.Name, binding.Name}
 							rows = append(rows, row)
 						} else if binding.Namespace != "" && roleNamespace == "" {
-							row := []string{subject.Name, subject.Kind, "ClusterRole", binding.Namespace, binding.RoleRef.Name}
+							row := []string{subject.Name, subject.Kind, "ClusterRole", binding.Namespace, binding.RoleRef.Name, binding.Name}
 							rows = append(rows, row)
 						} else {
-							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name}
+							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name, binding.Name}
 							rows = append(rows, row)
 						}
 					}
