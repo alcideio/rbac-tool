@@ -169,18 +169,19 @@ rbac-tool lookup -e '.*myname.*'
 
 ```shell script
 rbac-tool lookup -e '^system:'
-  SUBJECT                                         | SUBJECT TYPE | SCOPE       | NAMESPACE   | ROLE                                                                  
-+-------------------------------------------------+--------------+-------------+-------------+----------------------------------------------------------------------+
-  system:anonymous                                | User         | Role        | kube-public | kubeadm:bootstrap-signer-clusterinfo                                  
-  system:authenticated                            | Group        | ClusterRole |             | system:discovery                                                      
-  system:authenticated                            | Group        | ClusterRole |             | system:public-info-viewer                                             
-  system:authenticated                            | Group        | ClusterRole |             | system:basic-user                                                     
-  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | system:certificates.k8s.io:certificatesigningrequests:nodeclient      
-  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | system:node-bootstrapper                                              
-  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kubeadm:nodes-kubeadm-config                                          
-  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kubeadm:kubelet-config-1.16                                           
-  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kube-proxy                                                            
-  system:kube-controller-manager                  | User         | ClusterRole |             | system:kube-controller-manager       
+  SUBJECT                                         | SUBJECT TYPE | SCOPE       | NAMESPACE   | ROLE                                                                 | BINDING
++-------------------------------------------------+--------------+-------------+-------------+----------------------------------------------------------------------+---------------------------------------------------+
+  system:anonymous                                | User         | Role        | kube-public | kubeadm:bootstrap-signer-clusterinfo                                 | kubeadm:bootstrap-signer-clusterinfo
+  system:authenticated                            | Group        | ClusterRole |             | system:basic-user                                                    | system:basic-user
+  system:authenticated                            | Group        | ClusterRole |             | system:public-info-viewer                                            | system:public-info-viewer
+  system:authenticated                            | Group        | ClusterRole |             | system:discovery                                                     | system:discovery
+  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | kubeadm:get-nodes                                                    | kubeadm:get-nodes
+  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | system:node-bootstrapper                                             | kubeadm:kubelet-bootstrap
+  system:bootstrappers:kubeadm:default-node-token | Group        | ClusterRole |             | system:certificates.k8s.io:certificatesigningrequests:nodeclient     | kubeadm:node-autoapprove-bootstrap
+  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kube-proxy                                                           | kube-proxy
+  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kubeadm:nodes-kubeadm-config                                         | kubeadm:nodes-kubeadm-config
+  system:bootstrappers:kubeadm:default-node-token | Group        | Role        | kube-system | kubeadm:kubelet-config                                               | kubeadm:kubelet-config
+  system:kube-controller-manager                  | User         | ClusterRole |             | system:kube-controller-manager                                       | system:kube-controller-manager
 ...
 ```
 
