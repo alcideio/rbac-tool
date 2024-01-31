@@ -159,15 +159,21 @@ Examples:
 
 ```shell script
 # Search All Service Accounts
-rbac-tool lookup -e '.*'
+rbac-tool lookup
 ```
 
 ```shell script
-# Search All Service Accounts That Contains myname
+# Search Service Accounts that match myname exactly
+rbac-tool lookup myname
+```
+
+```shell script
+# Search All Service Accounts that contain myname
 rbac-tool lookup -e '.*myname.*'
 ```
 
 ```shell script
+# Lookup System Accounts (all accounts that start with system: )
 rbac-tool lookup -e '^system:'
   SUBJECT                                         | SUBJECT TYPE | SCOPE       | NAMESPACE   | ROLE                                                                 | BINDING
 +-------------------------------------------------+--------------+-------------+-------------+----------------------------------------------------------------------+---------------------------------------------------+
