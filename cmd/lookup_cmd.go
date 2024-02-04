@@ -51,7 +51,7 @@ rbac-tool lookup -ne '^system:.*'
 			var err error
 
 			if regex == "" {
-				if len(args) > 0 {
+				if len(args) == 1 {
 					// exact match
 					re, err = regexp.Compile(fmt.Sprintf(`^%v$`, args[0]))
 				} else {
