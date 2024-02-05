@@ -30,7 +30,10 @@ A Kubernetes RBAC lookup of Roles/ClusterRoles used by a given User/ServiceAccou
 Examples:
 
 # Search All Service Accounts
-rbac-tool lookup -e '.*'
+rbac-tool lookup
+
+# Search Service Accounts that match myname exactly
+rbac-tool lookup myname
 
 # Search All Service Accounts that contain myname
 rbac-tool lookup -e '.*myname.*'
@@ -47,14 +50,17 @@ rbac-tool lookup -ne '^system:.*'
 			var re *regexp.Regexp
 			var err error
 
-			if regex != "" {
-				re, err = regexp.Compile(regex)
-			} else {
-				if len(args) != 1 {
-					re, err = regexp.Compile(fmt.Sprintf(`.*`))
+			if regex == "" {
+				if len(args) == 1 {
+					// exact match
+					re, err = regexp.Compile(fmt.Sprintf(`^%v$`, args[0]))
 				} else {
-					re, err = regexp.Compile(fmt.Sprintf(`(?mi)%v`, args[0]))
+					// search all service accounts
+					re, err = regexp.Compile(fmt.Sprintf(`.*`))
 				}
+			} else {
+				// regex match
+				re, err = regexp.Compile(regex)
 			}
 
 			if err != nil {
