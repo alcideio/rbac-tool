@@ -258,8 +258,8 @@ func (a *analyzer) initialize() error {
 	return nil
 }
 
-func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*exclusion) (bool, error) {
-	for _, exclusion := range exclusions {
+func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*exclusion) (bool, int, error) {
+	for i, exclusion := range exclusions {
 		if exclusion.exclusion.Disabled {
 			klog.V(7).Infof("Exclusion '%v' is disabled - skipping", exclusion.exclusion.Comment)
 			continue
@@ -275,20 +275,20 @@ func (a *analyzer) shouldExclude(subject map[string]interface{}, exclusions []*e
 		})
 
 		if err != nil {
-			return false, err
+			return false, i, err
 		}
 
 		exclude, ok := recommendationOutput.Value().(bool)
 		if !ok {
-			return false, fmt.Errorf("Failed to cast exclusion result '%v'", exclusion.exclusion.Comment)
+			return false, i, fmt.Errorf("Failed to cast exclusion result '%v'", exclusion.exclusion.Comment)
 		}
 
 		if exclude {
-			return true, nil
+			return true, i, nil
 		}
 	}
 
-	return false, nil
+	return false, 0, nil
 }
 
 func (a *analyzer) Analyze() (*AnalysisReport, error) {
@@ -301,8 +301,9 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 			Description: a.config.Description,
 			Uuid:        a.config.Uuid,
 		},
-		CreatedOn: time.Now().Format(time.RFC3339),
-		Findings:  []AnalysisReportFinding{},
+		CreatedOn:      time.Now().Format(time.RFC3339),
+		Findings:       []AnalysisReportFinding{},
+		ExclusionsInfo: []ExclusionInfo{},
 	}
 
 	errs := []error{}
@@ -339,20 +340,39 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 		for _, subject := range subjects {
 			sub := subject.(map[string]interface{})
 
-			exclude, err := a.shouldExclude(sub, rule.exclusions)
+			s := v1.Subject{}
+			if kind, exist := sub["kind"]; exist {
+				s.Kind = kind.(string)
+			}
+			if apiGroup, exist := sub["apiGroup"]; exist {
+				s.APIGroup = apiGroup.(string)
+			}
+			if name, exist := sub["name"]; exist {
+				s.Name = name.(string)
+			}
+			if namespace, exist := sub["namespace"]; exist {
+				s.Namespace = namespace.(string)
+			}
+
+			exclude, index, err := a.shouldExclude(sub, rule.exclusions)
 			if err != nil {
-				klog.Errorf("Failed to check exclusion for rule '%v' and subject %v - %v", rule.rule.Name, sub, err)
+				klog.Errorf("Failed to check exclusion for rule '%v' and subject %v - %v (exclusion #%v)", rule.rule.Name, sub, err, index+1)
 				errs = append(errs, err)
 				//Continue on error - assume malformed exception expression
 			}
 
 			if exclude {
 				analysisStats.ExclusionCount++
-				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name)
+				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v (exclusion #%v)", sub, rule.rule.Name, index+1)
+				ei := ExclusionInfo{
+					Subject: &s,
+					Message: fmt.Sprintf("For rule: \"%v\", subject excluded by the rule-level (#%v) - \"%v\" ", rule.rule.Name, index+1, rule.rule.Exclusions[index].Comment),
+				}
+				report.ExclusionsInfo = append(report.ExclusionsInfo, ei)
 				continue
 			}
 
-			exclude, err = a.shouldExclude(sub, a.globalExclusions)
+			exclude, index, err = a.shouldExclude(sub, a.globalExclusions)
 			if err != nil {
 				klog.Errorf("Failed to check global exclusion for rule '%v' and subject %v - %v", rule.rule.Name, sub, err)
 				errs = append(errs, err)
@@ -361,7 +381,12 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 
 			if exclude {
 				analysisStats.ExclusionCount++
-				klog.V(5).Infof("Skipping subject '%v' from rule exclusion - %v", sub, rule.rule.Name)
+				klog.V(5).Infof("Skipping subject '%v' from global exclusion - %v", s, index+1)
+				ei := ExclusionInfo{
+					Subject: &s,
+					Message: fmt.Sprintf("For rule: \"%v\", subject excluded by a global exclusion (#%v) - \"%v\" ", rule.rule.Name, index+1, a.globalExclusions[index].exclusion.Comment),
+				}
+				report.ExclusionsInfo = append(report.ExclusionsInfo, ei)
 				continue
 			}
 
@@ -387,20 +412,6 @@ func (a *analyzer) Analyze() (*AnalysisReport, error) {
 				RuleName:       rule.rule.Name,
 				RuleUuid:       rule.rule.Uuid,
 				References:     rule.rule.References,
-			}
-
-			s := v1.Subject{}
-			if kind, exist := sub["kind"]; exist {
-				s.Kind = kind.(string)
-			}
-			if apiGroup, exist := sub["apiGroup"]; exist {
-				s.APIGroup = apiGroup.(string)
-			}
-			if name, exist := sub["name"]; exist {
-				s.Name = name.(string)
-			}
-			if namespace, exist := sub["namespace"]; exist {
-				s.Namespace = namespace.(string)
 			}
 
 			finding := AnalysisReportFinding{
