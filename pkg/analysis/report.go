@@ -12,6 +12,8 @@ type AnalysisReport struct {
 	CreatedOn string
 
 	Findings []AnalysisReportFinding
+
+	ExclusionsInfo []ExclusionInfo
 }
 
 type AnalysisStats struct {
@@ -44,4 +46,11 @@ type AnalysisFinding struct {
 
 	//Documetation & additional reading references
 	References []string
+}
+
+type ExclusionInfo struct {
+	Subject *v1.Subject
+
+	//Exclusion Message
+	Message string
 }
