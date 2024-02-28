@@ -22,8 +22,8 @@ import (
 func NewCommandGenerateClusterRole() *cobra.Command {
 
 	clusterContext := ""
-	name := "custom-cluster-role"
-	namespace := "myappnamespace"
+	name := ""
+	namespace := ""
 	generateKind := ""
 	allowedGroups := []string{}
 	//expandGroups := []string{}
@@ -79,8 +79,8 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 
 	flags.StringVarP(&generateKind, "generated-type", "t", "ClusterRole", "Role or ClusterRole")
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
-	flags.StringVar(&name, "name", "", "Name of Role/ClusterRole")
-	flags.StringVarP(&namespace, "namespace", "n", "", "Namespace of Role/ClusterRole")
+	flags.StringVar(&name, "name", "custom-cluster-role", "Name of Role/ClusterRole")
+	flags.StringVarP(&namespace, "namespace", "n", "myappnamespace", "Namespace of Role/ClusterRole")
 	//flags.StringSliceVarP(&expandGroups, "expand-groups", "g", []string{""},  "Comma separated list of API groups we would like to list all resource kinds rather than using wild cards '*'")
 	flags.StringSliceVar(&allowedGroups, "allowed-groups", []string{"*"}, "Comma separated list of API groups we would like to allow '*'")
 	flags.StringSliceVar(&allowedVerb, "allowed-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")

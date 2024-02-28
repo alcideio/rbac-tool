@@ -22,8 +22,8 @@ import (
 func NewCommandGenerateShowPermissions() *cobra.Command {
 
 	clusterContext := ""
-	name := "custom-cluster-role"
-	namespace := "myappnamespace"
+	name := ""
+	namespace := ""
 	generateKind := "ClusterRole"
 	forGroups := []string{"*"}
 	withVerb := []string{"*"}
@@ -104,8 +104,8 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 	flags := cmd.Flags()
 
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
-	flags.StringVar(&name, "name", "", "Name of Role/ClusterRole")
-	flags.StringVarP(&namespace, "namespace", "n", "", "Namespace of Role/ClusterRole")
+	flags.StringVar(&name, "name", "custom-cluster-role", "Name of Role/ClusterRole")
+	flags.StringVarP(&namespace, "namespace", "n", "myappnamespace", "Namespace of Role/ClusterRole")
 	flags.StringVarP(&scope, "scope", "", "all", "Filter by resource scope. Valid values are: 'cluster' | 'namespaced' | 'all' ")
 	flags.StringSliceVar(&forGroups, "for-groups", []string{"*"}, "Comma separated list of API groups we would like to show the permissions")
 	flags.StringSliceVar(&withVerb, "with-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
