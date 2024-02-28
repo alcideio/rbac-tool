@@ -22,12 +22,15 @@ import (
 func NewCommandGenerateShowPermissions() *cobra.Command {
 
 	clusterContext := ""
+	name := "custom-cluster-role"
+	namespace := "myappnamespace"
 	generateKind := "ClusterRole"
 	forGroups := []string{"*"}
 	withVerb := []string{"*"}
 	scope := "cluster"
 	denyVerb := []string{}
 	denyResource := []string{}
+	annotations := map[string]string{}
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -87,7 +90,7 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 			if scope == "namespaced" {
 				generateKind = "Role"
 			}
-			obj, err := generateRole(generateKind, computedPolicyRules)
+			obj, err := generateRole(generateKind, computedPolicyRules, name, namespace, annotations)
 			if err != nil {
 				return err
 			}
@@ -101,11 +104,14 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 	flags := cmd.Flags()
 
 	flags.StringVarP(&clusterContext, "cluster-context", "c", "", "Cluster.use 'kubectl config get-contexts' to list available contexts")
+	flags.StringVar(&name, "name", "", "Name of Role/ClusterRole")
+	flags.StringVarP(&namespace, "namespace", "n", "", "Namespace of Role/ClusterRole")
 	flags.StringVarP(&scope, "scope", "", "all", "Filter by resource scope. Valid values are: 'cluster' | 'namespaced' | 'all' ")
 	flags.StringSliceVar(&forGroups, "for-groups", []string{"*"}, "Comma separated list of API groups we would like to show the permissions")
 	flags.StringSliceVar(&withVerb, "with-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
 	flags.StringSliceVar(&denyVerb, "without-verbs", []string{""}, "Comma separated list of verbs to exclude.")
 	flags.StringSliceVar(&denyResource, "without-resources", []string{""}, "Comma separated list of resources to exclude. Syntax: <resourceName>.<apiGroup>")
+	flags.StringToStringVar(&annotations, "annotations", map[string]string{}, "Custom annotations")
 
 	return cmd
 }
