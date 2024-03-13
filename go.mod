@@ -12,7 +12,7 @@ require (
 	github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348
 	github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5
 	github.com/spf13/cobra v1.1.1
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.33.0
 	k8s.io/api v0.20.15
 	k8s.io/apimachinery v0.20.15
 	k8s.io/apiserver v0.20.15
