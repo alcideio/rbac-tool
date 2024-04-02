@@ -22,12 +22,13 @@ import (
 func NewCommandGenerateShowPermissions() *cobra.Command {
 
 	clusterContext := ""
-	generateKind := "ClusterRole"
 	forGroups := []string{"*"}
 	withVerb := []string{"*"}
 	scope := "cluster"
 	denyVerb := []string{}
 	denyResource := []string{}
+	namespace := ""
+	roleName := ""
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -85,14 +86,20 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 			}
 
 			if scope == "namespaced" {
-				generateKind = "Role"
-			}
-			obj, err := generateRole(generateKind, computedPolicyRules)
-			if err != nil {
-				return err
-			}
+				obj, err := generateRole(computedPolicyRules, namespace, roleName)
+				if err != nil {
+					return err
+				}
 
-			fmt.Fprintln(os.Stdout, obj)
+				fmt.Fprintln(os.Stdout, obj)
+			} else {
+				obj, err := generateClusterRole(computedPolicyRules, roleName)
+				if err != nil {
+					return err
+				}
+
+				fmt.Fprintln(os.Stdout, obj)
+			}
 
 			return nil
 		},
