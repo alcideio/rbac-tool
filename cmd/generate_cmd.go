@@ -143,7 +143,7 @@ func generateClusterRole(rules []rbacv1.PolicyRule, roleName string) (string, er
 			APIVersion: "rbac.authorization.k8s.io/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "custom-cluster-role",
+			Name: roleName,
 		},
 		Rules: rules,
 	}
