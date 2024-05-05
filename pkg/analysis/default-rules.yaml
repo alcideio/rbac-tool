@@ -394,3 +394,55 @@ Rules:
           (has(rule.apiGroup) && rule.apiGroup in ['', '*'])        )
       )
     Exclusions: []
+
+  - Name: Kyverno Administration
+    Description: Capture principals that have administrative privileges and can manage Kyverno shared resources resources
+    Severity: HIGH
+    Uuid: 7f9a4ef2-535b-4e44-897c-90a94ae9c985
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kyverno.io/docs/
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'update', 'patch', 'delete', '*']) &&
+          (
+              has(rule.resource) && rule.resource in ['clusterpolicies', 'policies', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['kyverno.io','*']
+          ) 
+        )
+      )
+    Exclusions: []
+
+  - Name: Installing or Modifying Kubernetes Admission Policies
+    Description: Capture principals that can install/update Kubernetes Admission Policies of any kind
+    Severity: HIGH
+    Uuid: e3fbfb0f-2f3b-4c30-ada4-50bbe73f421e
+    Recommendation: |
+      "Review the policy rules for \'" + (has(subject.namespace) ? subject.namespace +"/" : "") + subject.name + "\' ("+ subject.kind +") by running \'rbac-tool policy-rules -e " + subject.name +"\'.\n" +
+      "You can visualize the RBAC policy by running \'rbac-tool viz --include-subjects=" + subject.name +"\'"
+    References:
+      - https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/
+
+    # Analysis expressions are evaluated with array of SubjectPermissions object - see https://github.com/alcideio/rbac-tool/blob/master/pkg/rbac/subject_permissions.go#L11
+    # Expression syntax can be found here: https://github.com/google/cel-spec/blob/master/doc/intro.md
+    # In the expression when evaluating rule.resource - use plural form (secrets not secret)
+    AnalysisExpr: |
+      subjects.filter(
+        subject, has(subject.allowedTo) && subject.allowedTo.exists(
+          rule,
+          (has(rule.verb) && rule.verb in ['create', 'update', 'patch', '*']) &&
+          (
+              has(rule.resource) && rule.resource in ['validatingadmissionpolicies', 'validatingadmissionpolicybindings', '*'] &&
+              has(rule.apiGroup) && rule.apiGroup in ['admissionregistration.k8s.io','*']
+          )
+        )
+      )
+    Exclusions: []
