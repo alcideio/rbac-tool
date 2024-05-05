@@ -440,7 +440,7 @@ Rules:
           rule,
           (has(rule.verb) && rule.verb in ['create', 'update', 'patch', '*']) &&
           (
-              has(rule.resource) && rule.resource in ['validatingadmissionpolicies', 'validatingadmissionpolicybinding', '*'] &&
+              has(rule.resource) && rule.resource in ['validatingadmissionpolicies', 'validatingadmissionpolicybindings', '*'] &&
               has(rule.apiGroup) && rule.apiGroup in ['admissionregistration.k8s.io','*']
           )
         )
