@@ -28,6 +28,7 @@ func NewCommandGenerateShowPermissions() *cobra.Command {
 	scope := "cluster"
 	denyVerb := []string{}
 	denyResource := []string{}
+	metadataFlag := &MetadataFlag{metadata: metav1.ObjectMeta{Name: ""}}
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -87,7 +88,7 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 			if scope == "namespaced" {
 				generateKind = "Role"
 			}
-			obj, err := generateRole(generateKind, computedPolicyRules)
+			obj, err := generateRole(generateKind, computedPolicyRules, &metadataFlag.metadata)
 			if err != nil {
 				return err
 			}
@@ -106,6 +107,7 @@ rbac-tool show --scope=namespaced --without-verbs=create,update,patch,delete,del
 	flags.StringSliceVar(&withVerb, "with-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
 	flags.StringSliceVar(&denyVerb, "without-verbs", []string{""}, "Comma separated list of verbs to exclude.")
 	flags.StringSliceVar(&denyResource, "without-resources", []string{""}, "Comma separated list of resources to exclude. Syntax: <resourceName>.<apiGroup>")
+	flags.Var(metadataFlag, "metadata", "Kubernetes object metadata as JSON")
 
 	return cmd
 }

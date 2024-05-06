@@ -20,13 +20,13 @@ import (
 )
 
 func NewCommandGenerateClusterRole() *cobra.Command {
-
 	clusterContext := ""
 	generateKind := ""
 	allowedGroups := []string{}
 	//expandGroups := []string{}
 	allowedVerb := []string{}
 	denyResources := []string{}
+	metadataFlag := &MetadataFlag{metadata: metav1.ObjectMeta{Name: ""}}
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -47,6 +47,8 @@ rbac-tool gen --generated-type=Role --deny-resources=secrets.,ingresses.extensio
 # Generate a Role with read-only (get,list) excluding secrets (core group) from core group, admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-verbs=get,list  --allowed-groups=,admissionregistration.k8s.io,storage.k8s.io,networking.k8s.io
 
+# Generate a Role and customize the metadata of the generated object
+rbac-tool gen --generated-type=Role --deny-resources=secrets.,ingresses.extensions --allowed-verbs=get,list --metadata='{"name": "my-role", "namespace":"my-namespace", "labels": {"app": "myapp"}, "annotations": {"generated-by": "rbac-tool"}}'
 
 `,
 		Hidden: false,
@@ -61,7 +63,7 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 				return err
 			}
 
-			obj, err := generateRole(generateKind, computedPolicyRules)
+			obj, err := generateRole(generateKind, computedPolicyRules, &metadataFlag.metadata)
 			if err != nil {
 				return err
 			}
@@ -80,36 +82,46 @@ rbac-tool gen --generated-type=ClusterRole --deny-resources=secrets., --allowed-
 	flags.StringSliceVar(&allowedGroups, "allowed-groups", []string{"*"}, "Comma separated list of API groups we would like to allow '*'")
 	flags.StringSliceVar(&allowedVerb, "allowed-verbs", []string{"*"}, "Comma separated list of verbs to include. To include all use '*'")
 	flags.StringSliceVar(&denyResources, "deny-resources", []string{""}, "Comma separated list of resource.group - for example secret. to deny secret (core group) access")
+	flags.Var(metadataFlag, "metadata", "Kubernetes object metadata as JSON")
 
 	return cmd
 }
 
-func generateRole(generateKind string, rules []rbacv1.PolicyRule) (string, error) {
+func generateRole(generateKind string, rules []rbacv1.PolicyRule, metadata *metav1.ObjectMeta) (string, error) {
 	var obj runtime.Object
+	md := *metadata
 
 	if generateKind == "ClusterRole" {
+		if md.Name == "" {
+			md.Name = "custom-cluster-role"
+		}
+		md.Namespace = ""
+
 		obj = &rbacv1.ClusterRole{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "ClusterRole",
 				APIVersion: "rbac.authorization.k8s.io/v1",
 			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "custom-cluster-role",
-			},
-			Rules: rules,
+			ObjectMeta: md,
+			Rules:      rules,
 		}
 	} else {
+		if md.Name == "" {
+			md.Name = "custom-role"
+		}
+		if md.Namespace == "" {
+			md.Namespace = "mynamespace"
+		}
+
 		obj = &rbacv1.Role{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Role",
 				APIVersion: "rbac.authorization.k8s.io/v1",
 			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "custom-role",
-				Namespace: "mynamespace",
-			},
-			Rules: rules,
+			ObjectMeta: md,
+			Rules:      rules,
 		}
+
 	}
 
 	serializer := k8sJson.NewSerializerWithOptions(k8sJson.DefaultMetaFactory, nil, nil, k8sJson.SerializerOptions{Yaml: true, Pretty: true, Strict: true})
