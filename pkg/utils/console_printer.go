@@ -2,12 +2,16 @@ package utils
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/fatih/color"
 )
 
-var rbacToolPrefix = color.New(color.FgBlue).SprintFunc()
-var lineMsg = color.New(color.FgHiWhite).SprintFunc()
+var (
+	rbacToolPrefix = color.New(color.FgBlue).SprintFunc()
+	lineMsg        = color.New(color.FgHiWhite).SprintFunc()
+)
 
 func ConsolePrinter(msg string) {
-	fmt.Println(rbacToolPrefix("[RAPID7-INSIGHTCLOUDSEC]"), lineMsg(msg))
+	fmt.Fprintln(os.Stderr, rbacToolPrefix("[RAPID7-INSIGHTCLOUDSEC]"), lineMsg(msg))
 }
