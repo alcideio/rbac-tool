@@ -261,21 +261,6 @@ func (kubeClient *KubeClient) TokenReview(token string) (authn.UserInfo, error) 
 	return tokenReview.Status.User, nil
 }
 
-// ListPodSecurityPolicies Deprecated
-func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPolicy, error) {
-	if !kubeClient.pspSupported() {
-		return nil, nil
-	}
-
-	objs, err := kubeClient.Client.PolicyV1beta1().PodSecurityPolicies().List(context.TODO(), metav1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return objs.Items, nil
-}
-
 func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource string) (schema.GroupResource, error) {
 	gr := schema.ParseGroupResource(groupresource)
 
