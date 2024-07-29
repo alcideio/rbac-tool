@@ -76,7 +76,7 @@ rbac-tool viz --include-pods-only
 	flags.StringVar(&opts.Outformat, "outformat", "html", "Output format: dot or html")
 	flags.StringVar(&opts.IncludedNamespaces, "include-namespaces", "*", "Comma-delimited list of namespaces to include in the visualization")
 	flags.StringVar(&opts.IncludeSubjectsRegex, "include-subjects", ".*", "A regular expression to limit the subjects we visualize")
-	flags.StringVar(&opts.ExcludedNamespaces, "exclude-namespaces", "kube-system", "Comma-delimited list of namespaces to include in the visualization")
+	flags.StringVar(&opts.ExcludedNamespaces, "exclude-namespaces", "kube-system", "Comma-delimited list of namespaces to exclude from the visualization")
 
 	flags.BoolVar(&opts.ShowPodsOnly, "include-pods-only", false, "Show the graph only for service accounts used by Pods")
 
