@@ -38,7 +38,7 @@ func NewSubjectPermissions(perms *Permissions) []SubjectPermissions {
 				}
 
 				if subject.Namespace == "" && subject.Kind == v1.ServiceAccountKind && binding.Namespace != "" {
-					//If for some reason the namespace is abscent from the subject for ServiceAccount - fill it
+					//If for some reason the namespace is absent from the subject for ServiceAccount - fill it
 					subject.Namespace = binding.Namespace
 				}
 
