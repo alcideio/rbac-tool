@@ -58,6 +58,7 @@ Available Commands:
   generate        Generate Role or ClusterRole and reduce the use of wildcards
   help            Help about any command
   lookup          RBAC Lookup by subject (user/group/serviceaccount) name
+  orphan          Show orphan resources like ServiceAccounts, Roles, etc.
   policy-rules    RBAC List Policy Rules For subject (user/group/serviceaccount) name
   show            Generate ClusterRole with all available permissions from the target cluster
   version         Print rbac-tool version
@@ -74,6 +75,7 @@ Use "rbac-tool [command] --help" for more information about a command.
 
 - [The `rbac-tool viz` command](#rbac-tool-viz)
 - [The `rbac-tool analysis` command](#rbac-tool-analysis)
+- [The `rbac-tool orphan` command](#rbac-tool-orphan)
 - [The `rbac-tool lookup` command](#rbac-tool-lookup)
 - [The `rbac-tool who-can` command](#rbac-tool-who-can)
 - [The `rbac-tool policy-rules` command](#rbac-tool-policy-rules)
@@ -150,6 +152,16 @@ rbac-tool analysis --cluster-context myctx
 rbac-tool analysis --config myruleset.yaml
 ```
 
+# `rbac-tool orphan`
+
+Analyze RBAC permissions and highlight RBAC related orphan resources such as service accounts, role etc,.
+
+Examples:
+
+```shell script
+# Show Orphan ServiceAccount in specific namespace(s)
+bin/rbac-tool orphan sa --include-namespaces=somennamespace
+```
 
 # `rbac-tool lookup`
 Lookup of the Roles/ClusterRoles used attached to User/ServiceAccount/Group with or without [regex](https://regex101.com/)
