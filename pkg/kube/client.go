@@ -185,6 +185,60 @@ func (kubeClient *KubeClient) ListPods(namespace string) ([]v1.Pod, error) {
 	return objs.Items, nil
 }
 
+func (kubeClient *KubeClient) ListUsedServiceAccounts() (sets.String, error) {
+	// Get all Pods
+	pods, err := kubeClient.Client.CoreV1().Pods(v1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all ReplicaSets
+	replicaSets, err := kubeClient.Client.AppsV1().ReplicaSets(v1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all CronJobs
+	cronJobs, err := kubeClient.Client.BatchV1().CronJobs(v1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a map to track ServiceAccount usage
+	usedServiceAccounts := sets.NewString()
+
+	// Iterate over Pods and mark used ServiceAccounts
+	for _, pod := range pods.Items {
+		sa := pod.Spec.ServiceAccountName
+		if sa == "" {
+			sa = "default"
+		}
+		usedServiceAccounts.Insert(fmt.Sprintf("%s/%s", pod.Namespace, sa))
+	}
+
+	// Iterate over ReplicaSets and mark used ServiceAccounts
+	for _, rs := range replicaSets.Items {
+		if rs.Spec.Replicas != nil && *rs.Spec.Replicas == 0 {
+			sa := rs.Spec.Template.Spec.ServiceAccountName
+			if sa == "" {
+				sa = "default"
+			}
+			usedServiceAccounts.Insert(fmt.Sprintf("%s/%s", rs.Namespace, sa))
+		}
+	}
+
+	// Iterate over CronJobs and mark used ServiceAccounts
+	for _, cj := range cronJobs.Items {
+		sa := cj.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName
+		if sa == "" {
+			sa = "default"
+		}
+		usedServiceAccounts.Insert(fmt.Sprintf("%s/%s", cj.Namespace, sa))
+	}
+
+	return usedServiceAccounts, nil
+}
+
 func (kubeClient *KubeClient) ListServiceAccounts(namespace string) ([]v1.ServiceAccount, error) {
 	objs, err := kubeClient.Client.CoreV1().ServiceAccounts(namespace).List(context.TODO(), metav1.ListOptions{})
 
@@ -261,7 +315,7 @@ func (kubeClient *KubeClient) TokenReview(token string) (authn.UserInfo, error) 
 	return tokenReview.Status.User, nil
 }
 
-// ListPodSecurityPolicies Deprecated
+// deprecated ListPodSecurityPolicies Deprecated
 func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPolicy, error) {
 	if !kubeClient.pspSupported() {
 		return nil, nil

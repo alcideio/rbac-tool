@@ -41,6 +41,7 @@ func RbacGenCmd() *cobra.Command {
 		cmd.NewCommandAnalysis(),
 		cmd.NewCommandGenerateShowPermissions(),
 		cmd.NewCommandWhoAmI(),
+		cmd.NewCommandOrphan(),
 	}
 
 	flags := rootCmd.PersistentFlags()
