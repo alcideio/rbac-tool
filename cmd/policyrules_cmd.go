@@ -114,7 +114,7 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 
 					var subject string
 					if p.Subject.Kind == "ServiceAccount" {
-						subject = fmt.Sprintf("%v:%v", p.Subject.Namespace, p.Subject.Name)
+						subject = fmt.Sprintf("%v/%v", p.Subject.Namespace, p.Subject.Name)
 					} else {
 						subject = p.Subject.Name
 					}
