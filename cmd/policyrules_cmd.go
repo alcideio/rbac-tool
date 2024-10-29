@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"sigs.k8s.io/yaml"
 	"sort"
 	"strings"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/alcideio/rbac-tool/pkg/kube"
 	"github.com/alcideio/rbac-tool/pkg/rbac"
@@ -110,10 +111,18 @@ rbac-tool policy-rules -o json  | jp "[? @.allowedTo[? (verb=='get' || verb=='*'
 				policies := rbac.NewSubjectPermissionsList(filteredPolicies)
 
 				for _, p := range policies {
+
+					var subject string
+					if p.Subject.Kind == "ServiceAccount" {
+						subject = fmt.Sprintf("%v/%v", p.Subject.Namespace, p.Subject.Name)
+					} else {
+						subject = p.Subject.Name
+					}
+
 					for _, allowedTo := range p.AllowedTo {
 						row := []string{
 							p.Kind,
-							p.Name,
+							subject,
 							allowedTo.Verb,
 							allowedTo.Namespace,
 							allowedTo.APIGroup,
