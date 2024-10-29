@@ -1,16 +1,13 @@
 package visualize
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/emicklei/dot"
 	"github.com/fatih/color"
 	v1 "k8s.io/api/core/v1"
-	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog"
@@ -172,13 +169,6 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 		renderLegend(g)
 	}
 
-	if r.opts.ShowPSP && r.opts.ShowRules {
-		klog.V(6).Infof("Adding PSP Nodes (%v)", len(r.permissions.PodSecurityPolicies))
-		for _, psp := range r.permissions.PodSecurityPolicies {
-			r.newPSPandRulesNodePair(g, psp.Name, false)
-		}
-	}
-
 	for _, bindings := range r.permissions.RoleBindings {
 		for _, binding := range bindings {
 
@@ -201,7 +191,7 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 			nsSubGraph := newNamespaceSubgraph(g, binding.Namespace)
 
 			bindingNode := r.newBindingNode(nsSubGraph, binding)
-			roleNode, rulesNode := r.newRoleAndRulesNodePair(nsSubGraph, binding.Namespace, binding.RoleRef)
+			roleNode, _ := r.newRoleAndRulesNodePair(nsSubGraph, binding.Namespace, binding.RoleRef)
 
 			newBindingToRoleEdge(bindingNode, roleNode)
 
@@ -218,10 +208,6 @@ func (r *RbacViz) renderGraph() *dot.Graph {
 
 			for _, saNode := range saNodes {
 				newSubjectToBindingEdge(saNode, bindingNode)
-			}
-
-			if r.opts.ShowPSP && r.opts.ShowRules {
-				r.connectPSPNodesIfNeeded(g, binding, rulesNode)
 			}
 		}
 	}
@@ -264,11 +250,6 @@ func renderLegend(g *dot.Graph) {
 
 	clusterrules := newRulesNode0(legend, "", "ClusterRole", "Cluster-scoped access rules", false)
 	newRoleToRulesEdge(clusterrole, clusterrules)
-
-	pspNode := newPSPNode(legend, "", "PSP", true, false)
-	edge(nsrules2, pspNode)
-	pspRules := newRulesNode0(legend, "", "PSP Policy", "Pod Security Policy", false)
-	edge(pspNode, pspRules)
 
 }
 
@@ -409,102 +390,4 @@ func toRuleToTableRow(rule rbacv1.PolicyRule) string {
 	  </tr>
 `
 	return fmt.Sprintf(tableRow, apiGroups, resources, resourcesNames, verbs, nonResourceURLs)
-}
-
-func formatPodSecurityPolicy(psp policy.PodSecurityPolicy) string {
-	var rulesText string
-
-	table := `	
-		<table border="0" align="left">
-		  <tr>
-			<td align="left" border="1" sides="b">Attribute</td>
-			<td align="left" border="1" sides="b">Expected Value(s)</td>
-		  </tr>
-		  %s
-		</table>
-`
-	spec := utils.StructToMap(&psp.Spec)
-
-	keys := make([]string, 0, len(spec))
-	for k := range spec {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		rulesText = rulesText + fmt.Sprintf(`
-	  <tr>
-		<td align="left">%s</td>
-		<td align="left">%v</td>
-	  </tr>
-`, k, spec[k])
-	}
-
-	return fmt.Sprintf(table, rulesText)
-}
-
-func (r *RbacViz) newPSPandRulesNodePair(g *dot.Graph, pspName string, highlight bool) *dot.Node {
-	var rulesText string
-
-	if psp, found := r.permissions.PodSecurityPolicies[pspName]; found {
-		data := formatPodSecurityPolicy(psp)
-
-		if data != "" {
-			rulesText = data
-		} else {
-			data, err := json.Marshal(psp.Spec)
-			if err != nil {
-				klog.V(5).Infof("Failed to marshal json - %v", psp.Spec)
-				return nil
-			}
-
-			rulesText = string(data)
-		}
-	}
-
-	klog.V(5).Infof("[PSP] Add %v", pspName)
-
-	pspNode := newPSPNode(g, "", pspName, true, highlight)
-	pspRulesNode := newPSPRulesNode(g, pspName, rulesText, false)
-
-	edge(pspNode, pspRulesNode)
-	return &pspNode
-}
-
-func (r *RbacViz) connectPSPNodesIfNeeded(g *dot.Graph, binding rbacv1.RoleBinding, rulesNode *dot.Node) {
-	var roleNamespace string
-
-	if rulesNode == nil {
-		return
-	}
-
-	if binding.RoleRef.Kind == "ClusterRole" {
-		roleNamespace = ""
-	} else {
-		roleNamespace = binding.Namespace
-	}
-
-	if roles, found := r.permissions.Roles[roleNamespace]; found {
-		if role, found := roles[binding.RoleRef.Name]; found {
-			for _, rule := range role.Rules {
-				verbs := sets.NewString(rule.Verbs...)
-				apigroups := sets.NewString(rule.APIGroups...)
-				resources := sets.NewString(rule.Resources...)
-				if resources.Has("podsecuritypolicies") && verbs.Has("use") && apigroups.Has("policy") {
-
-					for _, psp := range rule.ResourceNames {
-						if psp == "*" {
-							for pspName, _ := range r.permissions.PodSecurityPolicies {
-								klog.V(5).Infof("\t\t>>> [add][PSP] %v/%v -> %v", binding.Namespace, binding.RoleRef.Name, pspName)
-								edge(*rulesNode, g.Node(pspNodeId(pspName)))
-							}
-						} else {
-							klog.V(5).Infof("\t\t>>> [add][PSP] %v/%v -> %v", binding.Namespace, binding.RoleRef.Name, psp)
-							edge(*rulesNode, g.Node(pspNodeId(psp)))
-						}
-					}
-				}
-			}
-		}
-	}
 }

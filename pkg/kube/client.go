@@ -8,7 +8,6 @@ import (
 
 	authn "k8s.io/api/authentication/v1"
 	v1 "k8s.io/api/core/v1"
-	policy "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8sserrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -261,21 +260,6 @@ func (kubeClient *KubeClient) TokenReview(token string) (authn.UserInfo, error) 
 	return tokenReview.Status.User, nil
 }
 
-// ListPodSecurityPolicies Deprecated
-func (kubeClient *KubeClient) ListPodSecurityPolicies() ([]policy.PodSecurityPolicy, error) {
-	if !kubeClient.pspSupported() {
-		return nil, nil
-	}
-
-	objs, err := kubeClient.Client.PolicyV1beta1().PodSecurityPolicies().List(context.TODO(), metav1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return objs.Items, nil
-}
-
 func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource string) (schema.GroupResource, error) {
 	gr := schema.ParseGroupResource(groupresource)
 
@@ -343,21 +327,4 @@ func (kubeClient *KubeClient) Resolve(verb, groupresource string, subResource st
 	}
 
 	return schema.GroupResource{}, fmt.Errorf("Failed find a matching API resource")
-}
-
-func (kubeClient *KubeClient) pspSupported() bool {
-	verbs, _ := kubeClient.GetVerbsForResource(policy.GroupName, "podsecuritypolicies")
-
-	if verbs != nil && verbs.Len() > 0 {
-		klog.V(6).Info("psp supported")
-		return true
-	}
-
-	if verbs == nil || verbs.Len() == 0 {
-		klog.V(6).Info("psp NOT supported")
-		return false
-	}
-
-	klog.V(6).Info("psp NOT supported")
-	return false
 }
