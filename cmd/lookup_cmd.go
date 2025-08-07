@@ -18,6 +18,7 @@ func NewCommandLookup() *cobra.Command {
 	clusterContext := ""
 	regex := ""
 	inverse := false
+	namespace := ""
 
 	// Support overrides
 	cmd := &cobra.Command{
@@ -44,6 +45,8 @@ rbac-tool lookup -e '^system:.*'
 # Lookup all accounts that DO NOT start with system: )
 rbac-tool lookup -ne '^system:.*'
 
+# Lookup ServiceAccount "default" in "myns" namespace
+rbac-tool lookup default --namespace=myns
 `,
 		Hidden: false,
 		RunE: func(c *cobra.Command, args []string) error {
@@ -106,6 +109,17 @@ rbac-tool lookup -ne '^system:.*'
 						}
 
 						//Subject match
+						// Filter by namespace if subject is ServiceAccount and namespace flag is set
+						subjNamespace := subject.Namespace
+						if subject.Kind == "ServiceAccount" {
+							if subjNamespace == "" {
+								subjNamespace = binding.Namespace
+							}
+							if namespace != "" && subjNamespace != namespace {
+								continue
+							}
+						}
+
 						roleNamespace := binding.Namespace
 						if binding.RoleRef.Kind == "ClusterRole" {
 							roleNamespace = ""
@@ -115,16 +129,20 @@ rbac-tool lookup -ne '^system:.*'
 							continue
 						}
 
-						if binding.Namespace == "" {
-							row := []string{subject.Name, subject.Kind, "ClusterRole", "", binding.RoleRef.Name, binding.Name}
-							rows = append(rows, row)
-						} else if binding.Namespace != "" && roleNamespace == "" {
-							row := []string{subject.Name, subject.Kind, "ClusterRole", binding.Namespace, binding.RoleRef.Name, binding.Name}
-							rows = append(rows, row)
-						} else {
-							row := []string{subject.Name, subject.Kind, "Role", binding.Namespace, binding.RoleRef.Name, binding.Name}
-							rows = append(rows, row)
+						scope := "Role"
+						if binding.RoleRef.Kind == "ClusterRole" {
+							scope = "ClusterRole"
 						}
+
+						row := []string{
+							subject.Name,
+							subject.Kind,
+							scope,
+							subjNamespace,
+							binding.RoleRef.Name,
+							binding.Name,
+						}
+						rows = append(rows, row)
 					}
 				}
 			}
@@ -133,7 +151,6 @@ rbac-tool lookup -ne '^system:.*'
 				if strings.Compare(rows[i][0], rows[j][0]) == 0 {
 					return (strings.Compare(rows[i][3], rows[j][3]) < 0)
 				}
-
 				return (strings.Compare(rows[i][0], rows[j][0]) < 0)
 			})
 
@@ -146,8 +163,9 @@ rbac-tool lookup -ne '^system:.*'
 
 	flags := cmd.Flags()
 	flags.StringVar(&clusterContext, "cluster-context", "", "Cluster Context .use 'kubectl config get-contexts' to list available contexts")
-
 	flags.StringVarP(&regex, "regex", "e", "", "Specify whether run the lookup using a regex match")
 	flags.BoolVarP(&inverse, "not", "n", false, "Inverse the regex matching. Use to search for users that do not match '^system:.*'")
+	flags.StringVar(&namespace, "namespace", "", "Namespace of the serviceaccount")
+
 	return cmd
 }
