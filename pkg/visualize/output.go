@@ -3,17 +3,22 @@ package visualize
 import (
 	"bytes"
 	"fmt"
+	"text/template"
+
 	"github.com/Masterminds/sprig"
 	"github.com/alcideio/rbac-tool/pkg/utils"
 	"github.com/emicklei/dot"
-	"k8s.io/klog"
-	"text/template"
 )
 
+type HtmlReport struct {
+	Graph   *dot.Graph
+	Legend  *dot.Graph
+	opts    *Opts
+	counter int64
+}
+
 func GenerateOutput(filename string, format string, g *dot.Graph, legend *dot.Graph, opts *Opts) error {
-
 	switch format {
-
 	case "html":
 		report := HtmlReport{
 			Graph:  g,
@@ -32,284 +37,120 @@ func GenerateOutput(filename string, format string, g *dot.Graph, legend *dot.Gr
 	default:
 		return utils.WriteFile(filename, g.String())
 	}
-
-}
-
-type HtmlReport struct {
-	Graph   *dot.Graph
-	Legend  *dot.Graph
-	opts    *Opts
-	counter int64
-}
-
-func (r *HtmlReport) generateHeader() string {
-
-	data := `
-		<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-			<div class="row">
-				<div class="col-6 collapse-brand">
-					<a href="javascript:void(0)">
-						<img src="https://www.rapid7.com/includes/img/Rapid7_logo.svg" height="24">
-					</a>
-				</div>
-				<div class="col-6 collapse-close">
-					<button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-default" aria-controls="navbar-default" aria-expanded="false" aria-label="Toggle navigation">
-						<span></span>
-						<span></span>
-					</button>
-				</div>
-			</div>
-			<div class="container">
-				<a class="navbar-brand" href="#"><img src="https://www.rapid7.com/globalassets/_logos/insightcloudsec-w.svg" height="28"><span style="font-weight: 100; font-style: normal; font-size: 22px;"> | RBAC Tool</span></a>
-				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-default" aria-controls="navbar-default" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-				</button>
-				<div class="collapse navbar-collapse" id="navbar-default">
-					<div class="navbar-collapse-header">
-						<div class="row">
-							<div class="col-6 collapse-brand">
-							</div>
-							<div class="col-6 collapse-close">
-								<button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-default" aria-controls="navbar-default" aria-expanded="false" aria-label="Toggle navigation">
-									<span></span>
-									<span></span>
-								</button>
-							</div>
-						</div>
-					</div>
-
-					<ul class="navbar-nav ml-auto">
-						<li class="nav-item">
-							<a class="nav-link nav-link-icon" href="https://github.com/alcideio/rbac-tool" target="_blank">
-								<i class="fab fa-github"></i>
-								<span class="nav-link-inner--text">GitHub</span>
-							</a>
-						</li>
-						<li class="nav-item">
-						  <a class="nav-link nav-link-icon" href="https://www.rapid7.com/products/insightcloudsec/" target="_blank">
-							<i class="fas fa-home"></i>
-							<span class="nav-link-inner--text">Site</span>
-						  </a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link nav-link-icon" href="https://codelab.alcide.io" target="_blank">
-								<i class="fas fa-code"></i>
-								<span class="nav-link-inner--text">Codelabs</span>
-							</a>
-						</li>
-						<li class="nav-item">
-						  <a class="nav-link nav-link-icon" href="https://twitter.com/rapid7" target="_blank">
-							<i class="fab fa-twitter"></i>
-							<span class="nav-link-inner--text">Twitter</span>
-						  </a>
-						</li>
-				  </ul>
-				</div>
-			</div>
-		</nav>
-`
-
-	tmpl, err := r.newTemplateEngine("header", data)
-	if err != nil {
-		klog.Errorf("Failed to generate category chart - %v", err)
-		return ""
-	}
-
-	buf := new(bytes.Buffer)
-
-	err = tmpl.Execute(buf, r)
-	if err != nil {
-		klog.Errorf("Failed to execute category chart - %v", err)
-		return ""
-	}
-
-	return buf.String()
-}
-
-func (r *HtmlReport) generateFooter() string {
-
-	data := `
-		<div class="row p20 mt-4">
-					<div class="col-md-4 text-center mt-4">
-						</div>
-					<div class="col-md-4 text-center p10">
-						<div>
- 							<span>
-								<a href="javascript:void(0)"><img src="https://www.rapid7.com/contentassets/cd8848ed7b7d4ab1818066b23f0d6d0c/r7-insight-wheel2.png" height="256"></a>
-								<p class="mt-4" style="font-weight: 100; font-style: normal; font-size: 18px;">Brought to You by <a target="_blank" href="https://www.rapid7.com/products/insightcloudsec/">Rapid7 InsightCloudSec</a> Kubernetes Obsession</p>
-							</span>
-						</div>
-					</div>
-					<div class="col-md-4 text-center">
-					</div>
-		</div>
-`
-
-	tmpl, err := r.newTemplateEngine("footer", data)
-	if err != nil {
-		klog.Errorf("Failed to generate footer - %v", err)
-		return ""
-	}
-
-	buf := new(bytes.Buffer)
-
-	err = tmpl.Execute(buf, r)
-	if err != nil {
-		klog.Errorf("Failed to execute footer - %v", err)
-		return ""
-	}
-
-	return buf.String()
-}
-
-func (r *HtmlReport) generateBody() string {
-	data := `
-		<div class="container-fluid">
-			<div class="row">
-				<div class="col-3">
-					<div class="card border-light"">
-
-					  <ul class="list-group list-group-flush">
-						<div><li class="list-group-item border-ligh">{{ generateGraph .Legend "legend" "100%" }}</li></div>
-					  </ul>
-					  <div class="bg-light p-1 text-center">
-						Legend
-					  </div>
-					</div>
-				</div>
-				<div class="col-6">
-					{{ generateGraph .Graph "rbacgraph" "auto" }}
-				</div>
-				<div class="col-3">
-				</div>
-			</div>
-		</div>
-`
-	funcs := sprig.TxtFuncMap()
-
-	funcs["uniqueCounter"] = r.uniqueCounter
-	funcs["generateGraph"] = r.generateGraph
-
-	tmpl, err := r.newTemplateEngine("body", data)
-	if err != nil {
-		klog.Errorf("Failed to generate body - %v", err)
-		return ""
-	}
-
-	buf := new(bytes.Buffer)
-
-	err = tmpl.Funcs(funcs).Execute(buf, r)
-	if err != nil {
-		klog.Errorf("Failed to execute category chart - %v", err)
-		return ""
-	}
-
-	return buf.String()
-
-}
-
-func (r *HtmlReport) generateGraph(graph *dot.Graph, divId string, widthStyle string) string {
-	fmtHtmlCode := `
-<style>
-  #` + divId + ` svg {
-    height: auto;
-    width: ` + widthStyle + `;
-  }
-</style>
-<div id="` + divId + `" style="text-align: center;">
-</div>
-
-<script>
-var dotSrc` + divId + ` = ` + fmt.Sprintf("`%s`", graph.String()) + `;
-
-var graphviz` + divId + ` = d3.select("#` + divId + `").graphviz()
-    .transition(function () {
-        return d3.transition("main")
-            .ease(d3.easeLinear)
-            .delay(500)
-            .duration(1500);
-    })
-    .logEvents(true)
-    .on("initEnd", render` + divId + `);
-
-function render` + divId + `() {
-    console.log('DOT source =', dotSrc` + divId + `);
-    dotSrcLines = dotSrc` + divId + `.split('\n');
-
-    graphviz` + divId + `
-        .transition(function() {
-            return d3.transition()
-                .delay(100)
-                .duration(1000);
-        })
-        .renderDot(dotSrc` + divId + `)
-		.zoom(true);
-}
-
-</script>
-`
-
-	return fmtHtmlCode
-}
-
-func (r *HtmlReport) uniqueCounter() string {
-	r.counter++
-
-	return fmt.Sprint(r.counter)
-}
-
-func (r *HtmlReport) newTemplateEngine(name string, data string) (*template.Template, error) {
-	funcs := sprig.TxtFuncMap()
-
-	funcs["uniqueCounter"] = r.uniqueCounter
-	funcs["generateHeader"] = r.generateHeader
-	funcs["generateBody"] = r.generateBody
-	funcs["generateFooter"] = r.generateFooter
-	funcs["generateGraph"] = r.generateGraph
-
-	return template.New(name).Funcs(funcs).Parse(data)
 }
 
 func (r *HtmlReport) Generate() (out string, err error) {
-
 	html := `
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="shortcut icon" href="https://www.rapid7.com/includes/img/favicon.ico" />
-  <title>[Rapid7 | InsightCloudSec] Kubernetes RBAC Power Toys</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://www.rapid7.com/includes/img/favicon.ico" />
+    <title>[Rapid7 | InsightCloudSec] Kubernetes RBAC Power Toys</title>
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-  <!-- Icons -->
-  <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
 
-  <!-- Argon CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        .nav-title {
+            font-size: 22px;
+            font-weight: 100;
+            font-style: normal;
+        }
+
+        .popover {
+            max-width: 100% !important;
+        }
+
+        #rbacgraph svg {
+            height: calc(100vh - 110px);
+            width: auto;
+        }
+
+        #legend svg {
+            height: auto;
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
 </head>
-	<body>
-		<script src="https://d3js.org/d3.v5.min.js"></script>
-		<script src="https://unpkg.com/viz.js@1.8.1/viz.js" type="application/javascript/"></script>
-		<script src="https://unpkg.com/d3-graphviz@2.6.1/build/d3-graphviz.js"></script>
-		
-		<!-- Core -->
-		<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-		<!-- script src="/assets/js/argon-design-system.min.js"></script -->
 
-		{{ generateHeader }}
+<body>
+    <nav class="navbar navbar-expand-sm bg-dark" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="https://www.rapid7.com/products/insightcloudsec">
+                <img src="https://www.rapid7.com/includes/img/Rapid7_logo.svg" height="24">
+                <img src="https://www.rapid7.com/globalassets/_logos/insightcloudsec-w.svg" height="28">
+                <span class="nav-title"> | RBAC Tool</span>
+            </a>
+            <div class="d-flex justify-content-end">
+                <div class="navbar-nav">
+                    <a class="nav-link" href="https://twitter.com/rapid7">
+                        <i class="bi-twitter"></i>
+                    </a>
+                    <a class="nav-link" href="https://github.com/alcideio/rbac-tool">
+                        <i class="bi-github"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-		{{ generateBody }}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <button id="button-legend" class="btn btn-secondary position-fixed m-3" type="button"
+                    data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom">
+                    <i class="bi-grid"></i> Legend
+                </button>
 
-		{{ generateFooter }}
+                <div class="container-legend" hidden>
+                    <div id="legend" class="text-center" data-name="popover-content"></div>
+                </div>
 
-	</body>
-</html>
-  `
+                <div id="rbac" class="text-center"></div>
+
+                <p class="text-center fixed-bottom">
+                    Brought to You by <a target="_blank" href="https://www.rapid7.com/products/insightcloudsec/">Rapid7 InsightCloudSec</a> Kubernetes Obsession
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@5.16.0/dist/d3.min.js"
+        integrity="sha256-Xb6SSzhH3wEPC4Vy3W70Lqh9Y3Du/3KxPqI2JHQSpTw=" crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/viz.js@1.8.1/viz.js"
+        integrity="sha256-ceV+JPvxGEp8n+NFiNhtOgVQ8w8ASMjmpAwz3NpW86U=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3-graphviz@2.6.1/build/d3-graphviz.min.js"
+        integrity="sha256-ga8Whvn2wFe328K4mwyb9iQQFWOtxO2nwg7Ey8lLido=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha256-whL0tQWoY1Ku1iskqPFvmZ+CHsvmRWx/PIoEvIeWh4I=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <script>
+        const options = { html: true, content: document.getElementById("legend") }
+        new bootstrap.Popover(document.getElementById("button-legend"), options)
+
+		{{ generateGraph .Legend "legend" }}
+		{{ generateGraph .Graph "rbac" }}
+    </script>
+</body>
+
+</html>`
 
 	tmpl, err := r.newTemplateEngine("full-report", html)
 	if err != nil {
@@ -324,4 +165,29 @@ func (r *HtmlReport) Generate() (out string, err error) {
 	}
 
 	return buf.String(), nil
+}
+
+func (r *HtmlReport) generateGraph(graph *dot.Graph, divId string) string {
+	fmtHtmlCode := `
+const dotSource` + divId + ` = ` + fmt.Sprintf("`%s`", graph.String()) + `;
+
+const graphviz` + divId + ` = d3.select("#` + divId + `").graphviz()
+	.logEvents(true).on("initEnd", () =>
+		graphviz` + divId + `.renderDot(dotSource` + divId + `).zoom(true)
+	);`
+
+	return fmtHtmlCode
+}
+
+func (r *HtmlReport) uniqueCounter() string {
+	r.counter++
+	return fmt.Sprint(r.counter)
+}
+
+func (r *HtmlReport) newTemplateEngine(name string, data string) (*template.Template, error) {
+	funcs := sprig.TxtFuncMap()
+	funcs["uniqueCounter"] = r.uniqueCounter
+	funcs["generateGraph"] = r.generateGraph
+
+	return template.New(name).Funcs(funcs).Parse(data)
 }
